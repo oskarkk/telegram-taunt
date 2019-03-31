@@ -5,6 +5,16 @@ pp = printer.pprint
 
 taunts = []
 
+def cellSplit(key):
+    for taunt in taunts[1:]:
+        if ';' in taunt[key]:
+            taunt[key] = taunt[key].split(';')
+            for index, item in enumerate(taunt[key]):
+                taunt[key][index] = item.strip()
+                print(taunt[key][index])
+        else:
+            taunt[key] = [ taunt[key] ]
+
 with open('taunty.csv', 'r') as f:
     x = csv.reader(f, delimiter='\t')
     taunts.append(next(x))
@@ -14,10 +24,4 @@ with open('taunty.csv', 'r') as f:
     for row in x:
         taunts.append({ taunts[0][i]: row[i] for i in range(0, len(taunts[0])) })
 
-for taunt in taunts[1:]:
-    for key in taunt:
-        if ';' in taunt[key]:
-            taunt[key] = taunt[key].split(';')
-            for index, item in enumerate(taunt[key]):
-                taunt[key][index] = item.strip()
-                print(taunt[key][index])
+cellSplit('voice')
