@@ -1,26 +1,25 @@
 import requests
 from config import *
 
-def getUpdates(url):
-	global updatesNum
-	global data 
-	data = requests.get(url).json()
-	updatesNum = len(data['result'])
+def getUpdates(token, timeout=0, lastUpdate=0, types=[], limit=100):
+    dic = { 'timeout': timeout,
+            'allowed_updates': types
+          }
+		  
+    if lastUpdate:
+        dic['offset'] = lastUpdate['update_id'] + 1
 
-getUpdates(tgURL + 'getUpdates?timeout=10')
+    resp = requests.post( 'https://api.telegram.org/bot'
+                        + token + '/getUpdates', json=dic ).json()
 
-# tg gives max 100 updates
-# get more updates till there are none
-def getMoreUpdates():
-	while updatesNum > 0 :
-		for update in data['result']:
-			try:
-				# get content of the message
-				query = update['inline_query']['query']
-			except KeyError:
-				# if key doesn't exist, discard update and go to the next update
-				continue
+    print(resp['result'])
+    print()
+    if resp['result']:
+        return resp['result']
+    else:
+        return 0 # file here
 
-		# get the next updates
-		lastID = data['result'][-1]['update_id']
-		getUpdates( tgURL+'?offset='+str(lastID + 1) )
+while 1:
+    data = getUpdates(botToken, 10)
+    while data:
+        data = getUpdates(botToken, 10, data[-1])
