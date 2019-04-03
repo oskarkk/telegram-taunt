@@ -25,16 +25,17 @@ def getUpdates(token, timeout=0, lastUpdate=0,
 def compare(text):
     text = tools.clean(text)
     print(text)
+    matches = []
     for taunt in info.taunts[1:]:
         for key in ['name', 'content', 'category', 'source']:
             t = tools.clean(taunt[key])
             if re.search(r'\b'+text,t):
-                return taunt['id']
+                matches.append(taunt['id'])
         for voice in taunt['voice']:
             t = tools.clean(voice)
             if re.search(r'\b'+text,t):
-                return taunt['id']
-    return 0
+                matches.append(taunt['id'])
+    return matches
 
 def sendAnswers(query, matches):
     dic = { 'inline_query_id': query,
