@@ -1,7 +1,8 @@
 import requests
 from config import *
 
-def getUpdates(token, timeout=0, lastUpdate=0, types=[], limit=100):
+def getUpdates(token, timeout=0, lastUpdate=0,
+               types=['inline_query','chosen_inline_result'], limit=100):
     dic = { 'timeout': timeout,
             'allowed_updates': types,
             'limit': limit
@@ -44,7 +45,9 @@ while 1:
     data = getUpdates(botToken, 10)
     while data:
         for update in data:
-            answers = compare(update['inline_query']['query'])
-            chosen = sendAnswers(update['inline_query']['id'], answers)
-            saveStats(chosen)
+            if 'inline_query' in update:
+                matches = compare(update['inline_query']['query'])
+                sendAnswers(update['inline_query']['id'], matches)
+            elif 'chosen_inline_result' in update:
+                saveStats(update['chosen_inline_result']['result_id'])
         data = getUpdates(botToken, 10, data[-1])
