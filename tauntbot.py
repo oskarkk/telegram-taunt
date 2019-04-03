@@ -1,4 +1,4 @@
-import requests
+import requests, textTools as tools
 from config import *
 
 def getUpdates(token, timeout=0, lastUpdate=0,
@@ -22,6 +22,7 @@ def getUpdates(token, timeout=0, lastUpdate=0,
         return 0  # file here
 
 def compare(text):
+    text = tools.clean(text)
     return 0
 
 def sendAnswers(query, matches):
