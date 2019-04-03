@@ -31,7 +31,7 @@ def sendAnswers(query, matches):
                 'type': 'voice',
                 'id': 'bbbb',
                 'title': 'testtitle',
-                'voice_url': 'https://laptop.oskark.pl/ogg/801%20Rzadko%20mam%20okazje%20sie%20najebac.ogg',
+                'voice_url': httpURL + '801%20Rzadko%20mam%20okazje%20sie%20najebac.ogg',
                 'caption': 'aaaa' }]
 #               'input_message_content': {'message_text': 'testcontent'} }]
             }
