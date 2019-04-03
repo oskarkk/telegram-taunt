@@ -1,4 +1,4 @@
-import requests, textTools as tools
+import requests, textTools as tools, info
 from config import *
 
 def getUpdates(token, timeout=0, lastUpdate=0,
