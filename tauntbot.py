@@ -39,14 +39,18 @@ def compare(text):
 
 def sendAnswers(query, matches):
     dic = { 'inline_query_id': query,
-            'results': [{
-                'type': 'voice',
-                'id': 'bbbb',
-                'title': 'testtitle',
-                'voice_url': httpURL + '801%20Rzadko%20mam%20okazje%20sie%20najebac.ogg',
-                'caption': 'aaaa' }]
-#               'input_message_content': {'message_text': 'testcontent'} }]
-            }
+            'results': []
+          }
+    for match in matches:
+        dicResult = {
+            'type': 'voice',
+            'id': match,
+            'title': match + ' ' + info.taunts[match]['name'],
+            'voice_url': httpURL + info.taunts[match]['filename'],
+            'caption': match
+        }
+        dic['results'].append(dicResult)
+    print(dic)
     resp = requests.post( 'https://api.telegram.org/bot'
                         + botToken + '/answerInlineQuery', json=dic ).json()
     print(resp)
