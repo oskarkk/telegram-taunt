@@ -1,4 +1,5 @@
-import requests, textTools as tools, info
+import requests, re
+import info, textTools as tools
 from config import *
 
 def getUpdates(token, timeout=0, lastUpdate=0,
@@ -23,6 +24,16 @@ def getUpdates(token, timeout=0, lastUpdate=0,
 
 def compare(text):
     text = tools.clean(text)
+    print(text)
+    for taunt in info.taunts[1:]:
+        for key in ['name', 'content', 'category', 'source']:
+            t = tools.clean(taunt[key])
+            if re.search(r'\b'+text,t):
+                return taunt['id']
+        for voice in taunt['voice']:
+            t = tools.clean(voice)
+            if re.search(r'\b'+text,t):
+                return taunt['id']
     return 0
 
 def sendAnswers(query, matches):
@@ -48,6 +59,7 @@ while 1:
         for update in data:
             if 'inline_query' in update:
                 matches = compare(update['inline_query']['query'])
+                print(matches)
                 sendAnswers(update['inline_query']['id'], matches)
             elif 'chosen_inline_result' in update:
                 saveStats(update['chosen_inline_result']['result_id'])
