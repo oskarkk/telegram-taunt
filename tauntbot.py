@@ -23,8 +23,19 @@ def getUpdates(token, timeout=0, lastUpdate=0, types=[], limit=100):
 def compare(text):
     return 0
 
-def sendAnswers(query,taunts):
-    return 0
+def sendAnswers(query, matches):
+    dic = { 'inline_query_id': query,
+            'results': [{
+                'type': 'voice',
+                'id': 'bbbb',
+                'title': 'testtitle',
+                'voice_url': 'https://laptop.oskark.pl/ogg/801%20Rzadko%20mam%20okazje%20sie%20najebac.ogg',
+                'caption': 'aaaa' }]
+#               'input_message_content': {'message_text': 'testcontent'} }]
+            }
+    resp = requests.post( 'https://api.telegram.org/bot'
+                        + botToken + '/answerInlineQuery', json=dic ).json()
+    print(resp)
 
 def saveStats(taunt):
     pass
