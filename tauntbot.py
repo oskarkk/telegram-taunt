@@ -68,5 +68,5 @@ while 1:
                 print(matches)
                 sendAnswers(update['inline_query']['id'], matches)
             elif 'chosen_inline_result' in update:
-                saveStats(update['chosen_inline_result']['result_id'])
+                stats.save(update['chosen_inline_result']['result_id'])
         data = getUpdates(botToken, 10, data[-1])
