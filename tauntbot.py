@@ -45,11 +45,12 @@ def sendAnswers(query, matches):
         dicResult = {
             'type': 'voice',
             'id': match,
-            'title': match + ' ' + info.taunts[match]['name'],
-            'voice_url': httpURL + info.taunts[match]['filename'],
+            'title': match + ' ' + info.taunts[int(match)]['name'],
+            'voice_url': httpURL + info.taunts[int(match)]['filename'],
             'caption': match
         }
         dic['results'].append(dicResult)
+        if len(dic['results']) == 50: break
     print(dic)
     resp = requests.post( 'https://api.telegram.org/bot'
                         + botToken + '/answerInlineQuery', json=dic ).json()
