@@ -60,12 +60,6 @@ def sendAnswers(query, matches):
                         + botToken + '/answerInlineQuery', json=dic ).json()
     print(resp)
 
-def sortPopular(matches):
-    table = stats.get(matches)
-    table.sort(key=lambda x: x[1], reverse=1)
-    table = table[:50]
-    return [ i[0] for i in table ]
-
 while 1:
     data = getUpdates(botToken, 10)
     while data:
@@ -73,7 +67,7 @@ while 1:
             if 'inline_query' in update:
                 matches = compare(update['inline_query']['query'])
                 print(matches)
-                sendAnswers(update['inline_query']['id'], sortPopular(matches))
+                sendAnswers(update['inline_query']['id'], stats.sort(matches))
             elif 'chosen_inline_result' in update:
                 stats.save(update['chosen_inline_result']['result_id'])
         data = getUpdates(botToken, 10, data[-1])

@@ -24,3 +24,9 @@ def save(taunt):
     content = '\n'.join( ['\t'.join(line) for line in lines] )
     with open('stats.txt', 'w') as f:
         f.write(content)
+
+def sort(tauntList=0,max=50):
+    table = stats.get(tauntList)
+    table.sort(key=lambda x: x[1], reverse=1)
+    table = table[:max]
+    return [ i[0] for i in table ]
