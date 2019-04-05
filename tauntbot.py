@@ -57,8 +57,9 @@ def sendAnswers(query, matches):
 
 def sortPopular(matches):
     table = stats.get(matches)
-    table = table.sort(key=lambda x: x[1], reverse=1)
-    return [ i[0] for i in table ][:50]
+    table.sort(key=lambda x: x[1], reverse=1)
+    table = table[:50]
+    return [ i[0] for i in table ]
 
 while 1:
     data = getUpdates(botToken, 10)
