@@ -33,11 +33,11 @@ def compare(text):
             for key in ['name', 'content', 'category', 'source']:
                 t = tools.clean(taunt[key])
                 if re.search(r'\b'+part,t):
-                    partMatches.add(taunt['id'])
+                    partMatches.add(int(taunt['id']))
             for voice in taunt['voice']:
                 t = tools.clean(voice)
                 if re.search(r'\b'+part,t):
-                    partMatches.add(taunt['id'])
+                    partMatches.add(int(taunt['id']))
         matches = matches & partMatches
     return matches
 
