@@ -46,18 +46,19 @@ def sendAnswers(query, matches):
             'type': 'voice',
             'id': match,
             'title': match + ' ' + info.taunts[int(match)]['name'],
-            'voice_url': httpURL + info.taunts[int(match)]['filename'],
-            'caption': match
+            'voice_url': httpURL + info.taunts[int(match)]['filename']
+#            'caption': match
         }
         dic['results'].append(dicResult)
-        if len(dic['results']) == 50: break
     print(dic)
     resp = requests.post( 'https://api.telegram.org/bot'
                         + botToken + '/answerInlineQuery', json=dic ).json()
     print(resp)
 
-def saveStats(taunt):
-    pass
+def sortPopular(matches):
+    table = stats.get(matches)
+    table = table.sort(key=lambda x: x[1], reverse=1)[:50]
+    return [ i[0] for i in table ]
 
 while 1:
     data = getUpdates(botToken, 10)
@@ -66,7 +67,7 @@ while 1:
             if 'inline_query' in update:
                 matches = compare(update['inline_query']['query'])
                 print(matches)
-                sendAnswers(update['inline_query']['id'], matches)
+                sendAnswers(update['inline_query']['id'], sortPopular(matches))
             elif 'chosen_inline_result' in update:
                 stats.save(update['chosen_inline_result']['result_id'])
         data = getUpdates(botToken, 10, data[-1])
