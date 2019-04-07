@@ -8,12 +8,8 @@ def create(taunts):
 def get(tauntList=0):
     with open('stats.txt', 'r') as f:
         content = f.read()
-    # deleting a newline at the end
-    if content[-1] == '\n': 
-        content = content[:-1]
-    # split lines to list of 2-element lists
-    lines = content.split('\n')
-    lines = [ x.split('\t') for x in lines ]
+    # split content to list of 2-element lists
+    lines = [ x.split('\t') for x in content.splitlines() ]
     if not tauntList: return lines
     return [ lines[int(i)-1] for i in tauntList ]
 
