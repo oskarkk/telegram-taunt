@@ -30,8 +30,8 @@ def checkField(field, text):
 
 def compare(query):
     query = tools.clean(query)
-    print(query)
-    parts = [ x.strip().split(':', maxsplit=1) for x in query.split('&') ]
+    parts = [ x.strip().split(':', maxsplit=1).reverse() for x in query.split('&') ]
+    parts = [ [y.strip() for y in x] for x in parts ]
 
     # get list of ids of all taunts
     matches = set( range(1,len(info.taunts)) )

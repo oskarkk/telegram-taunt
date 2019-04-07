@@ -15,6 +15,6 @@ def clean(text):
     punctuation = ",.-?!'"
     for char in punctuation:
         text = text.replace(char,'')
-    text = text.lower()
+    text = text.strip().lower()
     text = polish1(text)
     return text
