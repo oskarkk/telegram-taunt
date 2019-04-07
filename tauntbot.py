@@ -22,13 +22,22 @@ def getUpdates(token, timeout=0, lastUpdate=0,
     else:
         if resp['ok'] != True:
             with open('error.log', 'a') as f:
-                f.write(str(dic)+str(resp))
+                f.write(str(dic)+'\n'+str(resp)+'\n\n')
         return 0
 
+# compare query with info.taunts and return set of taunt ids
 def compare(query):
     query = tools.clean(query)
-    parts = [ x.strip().split(':', maxsplit=1).reverse() for x in query.split('&') ]
-    parts = [ [y.strip() for y in x] for x in parts ]
+
+    for egg in easterEggs:
+        if query == egg[0]: return { egg[1] }
+
+    # split composite queries, strip whitespace around '&'
+    # and make list of ['key', 'searched string'] or just ['searched string']
+    parts = [ x.strip().split(':', maxsplit=1) for x in query.split('&') ]
+    # reverse any ['key', 'searched string'] to ['searched string', 'key']
+    # and strip whitespaces inside
+    parts = [ [y.strip() for y in x][::-1] for x in parts ]
 
     # get list of ids of all taunts
     matches = set( range(1,len(info.taunts)) )
@@ -84,5 +93,5 @@ while 1:
             elif 'chosen_inline_result' in update:
                 stats.save(update['chosen_inline_result']['result_id'])
                 with open('chosen.log', 'a') as f:
-                    f.write(update['chosen_inline_result'])
+                    f.write(str(update['chosen_inline_result'])+'\n')
         data = getUpdates(botToken, 10, data[-1])
