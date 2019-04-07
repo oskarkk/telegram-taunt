@@ -22,30 +22,42 @@ def getUpdates(token, timeout=0, lastUpdate=0,
     else:
         return 0  # file here
 
-def compare(text):
-    text = tools.clean(text)
-    print(text)
-    parts = text.split('&')
+def checkField(field, text):
+    t = tools.clean(field)
+    if re.search(r'\b'+text,t):
+        return 1
+    return 0
+
+def compare(query):
+    query = tools.clean(query)
+    print(query)
+    parts = [ x.split(':', maxsplit=1) for x in query.split('&') ]
+
+    # get list of ids of all taunts
     matches = set( range(1,len(info.taunts)) )
+    
     for part in parts:
         partMatches = set()
-        for taunt in info.taunts[1:]:
-            for key in ['name', 'content', 'category', 'source']:
-                t = tools.clean(taunt[key])
-                if re.search(r'\b'+part,t):
-                    partMatches.add(int(taunt['id']))
-            for voice in taunt['voice']:
-                t = tools.clean(voice)
-                if re.search(r'\b'+part,t):
-                    partMatches.add(int(taunt['id']))
-        matches = matches & partMatches
+        for index, taunt in enumerate(info.taunts[1:], start=1):
+            if len(part) == 1:
+                for key in ['name', 'content', 'category', 'source']:
+                    if checkField(taunt[key], part[1]): partMatches |= index
+                for voice in taunt['voice']:
+                    if checkField(voice, part[1]): partMatches |= index
+            elif len(part) == 2:
+                if part[0] in ['name', 'content', 'category', 'source']:
+                    if checkField(taunt[part[0]], part[1]): partMatches |= index
+                elif part[0] == 'voice':
+                    for voice in taunt['voice']:
+                        if checkField(voice, part[1]): partMatches |= index
+        matches &= partMatches
     return matches
 
 # matches arg is a list
 def sendAnswers(query, matches):
     dic = { 'inline_query_id': query,
             'results': []
-          }
+    }
     for match in matches:
         dicResult = {
             'type': 'voice',
