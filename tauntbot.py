@@ -31,7 +31,7 @@ def checkField(field, text):
 def compare(query):
     query = tools.clean(query)
     print(query)
-    parts = [ x.split(':', maxsplit=1) for x in query.split('&') ]
+    parts = [ x.strip().split(':', maxsplit=1) for x in query.split('&') ]
 
     # get list of ids of all taunts
     matches = set( range(1,len(info.taunts)) )
@@ -41,9 +41,9 @@ def compare(query):
         for index, taunt in enumerate(info.taunts[1:], start=1):
             if len(part) == 1:
                 for key in ['name', 'content', 'category', 'source']:
-                    if checkField(taunt[key], part[1]): partMatches |= index
+                    if checkField(taunt[key], part[0]): partMatches |= index
                 for voice in taunt['voice']:
-                    if checkField(voice, part[1]): partMatches |= index
+                    if checkField(voice, part[0]): partMatches |= index
             elif len(part) == 2:
                 if part[0] in ['name', 'content', 'category', 'source']:
                     if checkField(taunt[part[0]], part[1]): partMatches |= index
@@ -78,8 +78,8 @@ while 1:
         for update in data:
             if 'inline_query' in update:
                 matches = compare(update['inline_query']['query'])
-                print(matches)
-                sendAnswers(update['inline_query']['id'], stats.sort(matches))
+                if matches: matches = stats.sort(matches)
+                sendAnswers(update['inline_query']['id'], matches)
             elif 'chosen_inline_result' in update:
                 stats.save(update['chosen_inline_result']['result_id'])
         data = getUpdates(botToken, 10, data[-1])
