@@ -20,13 +20,10 @@ def getUpdates(token, timeout=0, lastUpdate=0,
     if resp['result']:
         return resp['result']
     else:
-        return 0  # file here
-
-def checkField(field, text):
-    t = tools.clean(field)
-    if re.search(r'\b'+text,t):
-        return 1
-    return 0
+        if resp['ok'] != True:
+            with open('error.log', 'a') as f:
+                f.write(str(dic)+str(resp))
+        return 0
 
 def compare(query):
     query = tools.clean(query)
@@ -82,4 +79,6 @@ while 1:
                 sendAnswers(update['inline_query']['id'], matches)
             elif 'chosen_inline_result' in update:
                 stats.save(update['chosen_inline_result']['result_id'])
+                with open('chosen.log', 'a') as f:
+                    f.write(update['chosen_inline_result'])
         data = getUpdates(botToken, 10, data[-1])
