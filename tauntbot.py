@@ -33,20 +33,24 @@ def compare(query):
     # get list of ids of all taunts
     matches = set( range(1,len(info.taunts)) )
     
+    def check(field):
+        t = tools.clean(field)
+        return re.search(r'\b'+part[0], t)
+
     for part in parts:
         partMatches = set()
         for index, taunt in enumerate(info.taunts[1:], start=1):
             if len(part) == 1:
                 for key in ['name', 'content', 'category', 'source']:
-                    if checkField(taunt[key], part[0]): partMatches.add(index)
+                    if check(taunt[key]): partMatches.add(index)
                 for voice in taunt['voice']:
-                    if checkField(voice, part[0]): partMatches.add(index)
+                    if check(voice): partMatches.add(index)
             elif len(part) == 2:
-                if part[0] in ['name', 'content', 'category', 'source']:
-                    if checkField(taunt[part[0]], part[1]): partMatches.add(index)
-                elif part[0] == 'voice':
+                if part[1] in ['name', 'content', 'category', 'source']:
+                    if check(taunt[part[1]]): partMatches.add(index)
+                elif part[1] == 'voice':
                     for voice in taunt['voice']:
-                        if checkField(voice, part[1]): partMatches.add(index)
+                        if check(voice): partMatches.add(index)
         matches &= partMatches
     return matches
 
