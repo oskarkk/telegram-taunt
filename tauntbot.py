@@ -46,15 +46,22 @@ def compositeSearch(query):
         for index, taunt in enumerate(info.taunts[1:], start=1):
             if len(part) == 1:
                 for key in ['name', 'content', 'category', 'source']:
-                    if check(taunt[key]): partMatches.add(index)
-                for voice in taunt['voice']:
-                    if check(voice): partMatches.add(index)
+                    if check(taunt[key]): 
+                        partMatches.add(index)
+                        break
+                else:
+                    for voice in taunt['voice']:
+                        if check(voice): 
+                            partMatches.add(index)
+                            break
             elif len(part) == 2:
                 if part[1] in ['name', 'content', 'category', 'source']:
                     if check(taunt[part[1]]): partMatches.add(index)
                 elif part[1] == 'voice':
                     for voice in taunt['voice']:
-                        if check(voice): partMatches.add(index)
+                        if check(voice): 
+                            partMatches.add(index)
+                            break
         matches &= partMatches
     return list(matches)
 
@@ -92,7 +99,6 @@ def sendAnswers(query, matches):
 #            'caption': match
         }
         dic['results'].append(dicResult)
-    print(dic)
     resp = requests.post( 'https://api.telegram.org/bot'
                         + botToken + '/answerInlineQuery', json=dic ).json()
     print(resp)
