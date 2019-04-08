@@ -76,9 +76,9 @@ def compare(query):
         pass
     else:
         # check if given number is <= than number of taunts
-        tauntsNum = len(info.taunts)
-        if num < tauntsNum:
-            return list( range(num, max(num+50,tauntsNum)) )
+        tauntsNum = len(info.taunts[1:])
+        if num <= tauntsNum:
+            return list( range(num, min(num+50,tauntsNum)) )
 
     matches = compositeSearch(query)
     if matches: matches = stats.sort(matches)
@@ -117,4 +117,6 @@ while 1:
                 with open('chosen.log', 'a') as f:
                     update['chosen_inline_result']['time'] = int(time.time())
                     f.write(str(update['chosen_inline_result'])+'\n')
-        data = getUpdates(botToken, 10, data[-1])
+        # get the next updates, at the same time confirming updates with id
+        # lower than id of the last update in updatesList
+        updatesList = getUpdates(botToken, 10, updatesList[-1])
