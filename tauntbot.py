@@ -2,6 +2,7 @@ import requests, re, time
 import info, stats, textTools as tools
 from config import *
 
+# return list of results or 0 if there are none
 def getUpdates(token, timeout=0, lastUpdate=0,
                types=['inline_query','chosen_inline_result'], limit=100):
     dic = { 'timeout': timeout,
@@ -9,6 +10,8 @@ def getUpdates(token, timeout=0, lastUpdate=0,
             'limit': limit
           }
 
+    # "An update is considered confirmed as soon as getUpdates is called 
+    # with an offset higher than its update_id."
     if lastUpdate:
         dic['offset'] = lastUpdate['update_id'] + 1
 
@@ -19,6 +22,7 @@ def getUpdates(token, timeout=0, lastUpdate=0,
         return resp['result']
     else:
         if resp['ok'] != True:
+            # write errors to a file
             with open('error.log', 'a') as f:
                 f.write(str(dic)+'\n'+str(resp)+'\n\n')
         return 0
@@ -63,13 +67,14 @@ def compositeSearch(query):
         matches &= partMatches
     return list(matches)
 
-# compare query with info.taunts and return list of taunt ids
+# compare query with info.taunts and return list of taunt IDs
 def compare(query):
     query = tools.clean(query)
 
     for egg in easterEggs:
         if query == egg[0]: return [ egg[1] ]
 
+    # searching by ID, only if query is a number
     try:
         num = int(query)
     except ValueError:
@@ -78,13 +83,14 @@ def compare(query):
         # check if given number is <= than number of taunts
         tauntsNum = len(info.taunts[1:])
         if num <= tauntsNum:
-            return list( range(num, min(num+50,tauntsNum)) )
+            return list( range(num, min(num+50,tauntsNum+1)) )
 
+    # find matching taunts by string comparison and sort them by popularity
     matches = compositeSearch(query)
     if matches: matches = stats.sort(matches)
     return matches
 
-# matches arg is a list
+# matches arg is a list of taunt IDs
 def sendAnswers(query, matches):
     dic = { 'inline_query_id': query,
             'cache_time': 30,
@@ -112,8 +118,13 @@ while 1:
             if 'inline_query' in update:
                 matches = compare(update['inline_query']['query'])
                 sendAnswers(update['inline_query']['id'], matches)
+            # when tg informs the bot that someone has chosen a taunt
+            # (for every result there may or may not be an associated query,
+            # remember caching)
             elif 'chosen_inline_result' in update:
+                # increment use counter of particular taunt
                 stats.save(update['chosen_inline_result']['result_id'])
+                # save results to file for future processing
                 with open('chosen.log', 'a') as f:
                     update['chosen_inline_result']['time'] = int(time.time())
                     f.write(str(update['chosen_inline_result'])+'\n')
