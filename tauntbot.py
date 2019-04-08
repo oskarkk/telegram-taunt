@@ -25,13 +25,7 @@ def getUpdates(token, timeout=0, lastUpdate=0,
                 f.write(str(dic)+'\n'+str(resp)+'\n\n')
         return 0
 
-# compare query with info.taunts and return set of taunt ids
-def compare(query):
-    query = tools.clean(query)
-
-    for egg in easterEggs:
-        if query == egg[0]: return { egg[1] }
-
+def compositeSearch(query):
     # split composite queries, strip whitespace around '&'
     # and make list of ['key', 'searched string'] or just ['searched string']
     parts = [ x.strip().split(':', maxsplit=1) for x in query.split('&') ]
@@ -46,6 +40,7 @@ def compare(query):
         t = tools.clean(field)
         return re.search(r'\b'+part[0], t)
 
+    # I am deeply sorry for this symphony of fors and ifs
     for part in parts:
         partMatches = set()
         for index, taunt in enumerate(info.taunts[1:], start=1):
@@ -61,18 +56,38 @@ def compare(query):
                     for voice in taunt['voice']:
                         if check(voice): partMatches.add(index)
         matches &= partMatches
+    return list(matches)
+
+# compare query with info.taunts and return list of taunt ids
+def compare(query):
+    query = tools.clean(query)
+
+    for egg in easterEggs:
+        if query == egg[0]: return [ egg[1] ]
+
+    try:
+        num = int(query)
+    except ValueError:
+        pass
+    else:
+        if num < len(info.taunts):
+            return list(range(num, num+50))
+
+    matches = compositeSearch(query)
+    if matches: matches = stats.sort(matches)
     return matches
 
 # matches arg is a list
 def sendAnswers(query, matches):
     dic = { 'inline_query_id': query,
+            'cache_time': 30,
             'results': []
     }
     for match in matches:
         dicResult = {
             'type': 'voice',
-            'id': match,
-            'title': match + ' ' + info.taunts[int(match)]['name'],
+            'id': str(match),
+            'title': str(match) + ' ' + info.taunts[int(match)]['name'],
             'voice_url': httpURL + info.taunts[int(match)]['filename']
 #            'caption': match
         }
@@ -88,7 +103,6 @@ while 1:
         for update in data:
             if 'inline_query' in update:
                 matches = compare(update['inline_query']['query'])
-                if matches: matches = stats.sort(matches)
                 sendAnswers(update['inline_query']['id'], matches)
             elif 'chosen_inline_result' in update:
                 stats.save(update['chosen_inline_result']['result_id'])
