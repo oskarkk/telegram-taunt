@@ -38,14 +38,21 @@ def compositeSearch(query):
     # get list of ids of all taunts
     matches = set( range(1,len(info.taunts)) )
     
+    # if query is empty, return all taunts
+    if not query:
+        return matches
+
+    # helper function for matching info fields and query
     def check(field):
         t = tools.clean(field)
         return re.search(r'\b'+part[0], t)
 
     # I am deeply sorry for this symphony of fors and ifs
     for part in parts:
+        # make set for all matches for a part
         partMatches = set()
         for index, taunt in enumerate(info.taunts[1:], start=1):
+            # part without searching in key
             if len(part) == 1:
                 for key in ['name', 'content', 'category', 'source']:
                     if check(taunt[key]): 
@@ -56,6 +63,7 @@ def compositeSearch(query):
                         if check(voice): 
                             partMatches.add(index)
                             break
+            # part with key in part[1]
             elif len(part) == 2:
                 if part[1] in ['name', 'content', 'category', 'source']:
                     if check(taunt[part[1]]): partMatches.add(index)
@@ -64,8 +72,12 @@ def compositeSearch(query):
                         if check(voice): 
                             partMatches.add(index)
                             break
+        # none matches in any part mean that nothing will match overall
+        if not partMatches:
+            return []
+        # set intersection
         matches &= partMatches
-    return list(matches)
+    return matches
 
 # compare query with info.taunts and return list of taunt IDs
 def compare(query):
@@ -109,6 +121,7 @@ def sendAnswers(query, matches):
                         + botToken + '/answerInlineQuery', json=dic ).json()
     print(resp)
 
+# main loop
 while 1:
     updatesList = getUpdates(botToken, 10)
     # tg gives max 100 updates, so repeat until there are none left

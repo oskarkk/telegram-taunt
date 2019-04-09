@@ -1,3 +1,4 @@
+# replace polish letters with ascii
 def polish1(text):
     polishLetters = 'ąćęłńóśźż'
     asciiLetters = 'acelnoszz'
@@ -11,6 +12,8 @@ def polish2(text):
 
 #text = 'Zażółć gęślą jaźń'
 
+# remove punctuation, trailing whitespace, 
+# change to lowercase, replace polish letters with ascii
 def clean(text):
     punctuation = ",.-?!'"
     for char in punctuation:
