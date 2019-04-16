@@ -1,3 +1,5 @@
+import pprint
+
 # create list of taunt IDs and zeros separated by tabs
 # arg must be info.taunts
 def create(taunts):
@@ -27,7 +29,45 @@ def save(taunt):
 # sort given ID list by popularity
 def sort(tauntList=0, max=50):
     table = get(tauntList)
-    table.sort(key=lambda x: x[1], reverse=1)
-    # discard everything afert <max> most popular taunts
+    table.sort(key=lambda x: int(x[1]), reverse=1)
+    # discard everything after <max> most popular taunts
     table = table[:max]
     return [ i[0] for i in table ]
+
+def lines(filename):
+    with open(filename, 'r') as f:
+        content = [ line for line in f ]
+    return content
+
+def answers(start=0):
+    answers = []
+    for line in lines('chosen.log')[-start:]:
+        answers.append( eval(line[:-1]) )
+    return answers
+
+pp = pprint.PrettyPrinter(indent=4)
+pretty = pp.pprint
+
+def users(start=0):
+    users = {}
+    for answer in answers(start):
+#        print(answer['from'])
+        id = answer['from']['id']
+        try:
+            users[id]
+        # if user isn't in the users dict
+        except KeyError:
+            users[id] = answer['from']
+            users[id].update({
+                'first_use': answer['time'],
+                'last_use': answer['time'],
+                'count': 1
+            })
+        # if user is in the dict
+        else:
+            users[id]['count'] += 1
+            users[id]['last_use'] = answer['time']
+    for user in users:
+        pretty(users[user])
+        print()
+    return users

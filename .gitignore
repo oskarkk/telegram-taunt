@@ -4,3 +4,4 @@ config.py
 stats.txt
 chosen.log
 error.log
+__pycache__/
