@@ -49,32 +49,28 @@ class Stats:
         for entry in self.entries:
             id = entry['from']['id']
 
-            try:
-                users[id]
-            # if user isn't in the users dict
-            except KeyError:
-                users[id] = dict(entry['from'])
-                users[id].update({
-                    'first_use': entry['time'],
-                    'count': 0
-                    'taunts': []
-                    'username': []
-                })
-            finally:
-                users[id]['count'] += 1
-                users[id]['last_use'] = entry['time']
+            user = users.setdefault(id, dict(entry['from'],
+                    first_use = entry['time'],
+                    count = 0,
+                    taunts = [],
+                    username = []
+            ))
 
-                # add username to the list of user's usernames
-                try:
-                    currentUsername = entry['from']['username']
-                except KeyError:
-                    if users[id]['username']:
-                        users[id]['username'] = ['']
-                    pass
-                else:
-                    if not users[id]['username'] \
-                       or users[id]['username'][-1] != currentUsername:
-                        users[id]['username'].append(currentUsername)
+            user['count'] += 1
+            user['last_use'] = entry['time']
+
+            # add username to the list of user's usernames
+            try:
+                currentUsername = entry['from']['username']
+            except KeyError:
+                if user['username']:
+                    user['username'] = ['']
+                pass
+            else:
+                if not user['username'] \
+                   or user['username'][-1] != currentUsername:
+                    user['username'].append(currentUsername)
+
         self.users = users
         self.various['usersNum'] = len(users)
 
@@ -137,4 +133,4 @@ class Stats:
                 f.write(output)
         print(output)
 
-    def exportUsers(self, 
+#    def exportUsers(self, 
