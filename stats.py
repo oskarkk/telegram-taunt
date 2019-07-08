@@ -34,40 +34,107 @@ def sort(tauntList=0, max=50):
     table = table[:max]
     return [ i[0] for i in table ]
 
-def lines(filename):
-    with open(filename, 'r') as f:
-        content = [ line for line in f ]
-    return content
+class Stats:
 
-def answers(start=0):
-    answers = []
-    for line in lines('chosen.log')[-start:]:
-        answers.append( eval(line[:-1]) )
-    return answers
+    def answers(self, start, filename):
+        with open(filename, 'r') as f:
+            lines = list(f)
+        answers = []
+        for line in lines[-start:]:
+            answers.append( eval(line[:-1]) )
+        return answers
 
-pp = pprint.PrettyPrinter(indent=4)
-pretty = pp.pprint
+    def getUsers(self):
+        users = {}
+        for entry in self.entries:
+            id = entry['from']['id']
 
-def users(start=0):
-    users = {}
-    for answer in answers(start):
-#        print(answer['from'])
-        id = answer['from']['id']
-        try:
-            users[id]
-        # if user isn't in the users dict
-        except KeyError:
-            users[id] = answer['from']
-            users[id].update({
-                'first_use': answer['time'],
-                'last_use': answer['time'],
-                'count': 1
-            })
-        # if user is in the dict
-        else:
-            users[id]['count'] += 1
-            users[id]['last_use'] = answer['time']
-    for user in users:
-        pretty(users[user])
-        print()
-    return users
+            try:
+                users[id]
+            # if user isn't in the users dict
+            except KeyError:
+                users[id] = dict(entry['from'])
+                users[id].update({
+                    'first_use': entry['time'],
+                    'count': 0
+                    'taunts': []
+                    'username': []
+                })
+            finally:
+                users[id]['count'] += 1
+                users[id]['last_use'] = entry['time']
+
+                # add username to the list of user's usernames
+                try:
+                    currentUsername = entry['from']['username']
+                except KeyError:
+                    if users[id]['username']:
+                        users[id]['username'] = ['']
+                    pass
+                else:
+                    if not users[id]['username'] \
+                       or users[id]['username'][-1] != currentUsername:
+                        users[id]['username'].append(currentUsername)
+        self.users = users
+        self.various['usersNum'] = len(users)
+
+    def getTaunts(self):
+        taunts = {}
+        for entry in self.entries:
+            id = entry['result_id']
+
+            try:
+                taunts[id]
+            except KeyError:
+                taunts[id] = 1
+            else:
+                taunts[id] += 1
+
+        self.taunts = taunts
+        self.various['usedTaunts'] = len(taunts)
+
+    def __init__(self, filename='chosen.log', start=0):
+        self.entries = self.answers(start, filename)
+        self.various = { 'uses': len(self.entries) }
+        self.getUsers()
+        self.getTaunts()
+
+    pp = pprint.PrettyPrinter(indent=4)
+    pretty = pp.pprint
+
+    def print(self, obj, enter=1):
+        for x in obj:
+            print(x, end=': ')
+            if enter: print()
+            self.pretty(obj[x])
+            if enter: print()
+
+    def exportTaunts(self, info, sort=0, details=0, filename=0):
+        self.various['allTaunts'] = len(info[1:])
+        taunts = dict(self.taunts)
+        for x in info[1:]:
+            try:
+                taunts[x['id']]
+            except KeyError:
+                taunts[x['id']] = 0
+            finally:
+                if not details:
+                    taunts[x['id']] = ( x['id'],
+                                        str( taunts[x['id']] ) )
+                else:
+                    taunts[x['id']] = ( x['id'],
+                                        str( taunts[x['id']] ),
+                                        x['name'] )
+
+        tauntList = [taunts[x] for x in taunts]
+
+        # sort by id if sort=0, sort by uses and reverse if sort=1
+        tauntList.sort(key=lambda x: int(x[sort]), reverse=sort)
+
+        output = '\n'.join([ '\t'.join(taunt) for taunt in tauntList ])
+        if filename:
+            with open(filename, 'w') as f:
+                f.write(output)
+        print(output)
+
+    def exportUsers(self, 
