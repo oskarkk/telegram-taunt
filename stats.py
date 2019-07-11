@@ -1,4 +1,5 @@
 import pprint
+from copy import deepcopy
 
 # create list of taunt IDs and zeros separated by tabs
 # arg must be info.taunts
@@ -95,14 +96,17 @@ class Stats:
         self.getUsers()
         self.getTaunts()
 
-    pp = pprint.PrettyPrinter(indent=4)
-    pretty = pp.pprint
+    def pretty(self, obj): return pprint.pformat(obj, indent=4)
 
-    def print(self, obj, enter=1):
+    def print(self, obj, enter=1, userTaunts=0):
+        if obj == self.users and userTaunts == 0:
+            obj = deepcopy(obj)
+            for user in obj:
+                del obj[user]['taunts']
         for x in obj:
-            print(x, end=': ')
+            print( self.pretty(x), end=': ' )
             if enter: print()
-            self.pretty(obj[x])
+            print( self.pretty(obj[x]) )
             if enter: print()
 
     def exportTaunts(self, info, sort=0, details=0, filename=0):
