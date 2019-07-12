@@ -53,12 +53,14 @@ class Stats:
             user = users.setdefault(id, dict(entry['from'],
                     first_use = entry['time'],
                     count = 0,
-                    taunts = [],
+                    taunts = {},
                     username = []
             ))
 
             user['count'] += 1
             user['last_use'] = entry['time']
+            result_id = entry['result_id']
+            user['taunts'][result_id] = user['taunts'].get(result_id,0) + 1
 
             # add username to the list of user's usernames
             try:
