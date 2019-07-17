@@ -1,4 +1,5 @@
 import pprint
+from datetime import datetime
 from copy import deepcopy
 
 # create list of taunt IDs and zeros separated by tabs
@@ -66,7 +67,7 @@ class Stats:
             try:
                 currentUsername = entry['from']['username']
             except KeyError:
-                if user['username']:
+                if not user['username']:
                     user['username'] = ['']
                 pass
             else:
@@ -139,4 +140,36 @@ class Stats:
                 f.write(output)
         print(output)
 
-#    def exportUsers(self, 
+    def exportUsers(self, info, sort, rev, taunts=0, max=None):
+        self.various['allTaunts'] = len(info[1:])
+        taunts = self.taunts
+        users = [ dict(self.users[user]) for user in self.users ]
+        users.sort(key=lambda x: x[sort], reverse=rev)
+
+        output = ''
+
+        for user in users[:max]:
+            firstUse = datetime.fromtimestamp(user['first_use'])
+            lastUse = datetime.fromtimestamp(user['last_use'])
+            firstName = user.get('first_name', '')
+            lastName = user.get('last_name', '')
+            tauntsUsed = len(user['taunts'])
+            output = \
+                f"{user['id']}: {user['username'][-1]}\n" \
+                f"{firstName} {lastName}\n" \
+                f"{firstUse}\n" \
+                f"{lastUse}\n" \
+                f"uses: {user['count']}\n" \
+                f"taunts used: {tauntsUsed}\n"
+            taunts = list(user['taunts'].items())
+            taunts.sort(reverse=1, key=lambda x: x[1])
+            #output2 = ''
+            for num, line in enumerate(output.splitlines()):
+                line = line.ljust(30)[:30] + '  '
+                if len(taunts) > num:
+                    line += str(taunts[num][1]).ljust(4) + \
+                      taunts[num][0].ljust(5) + \
+                      info[ int(taunts[num][0]) ]['name'].ljust(40)[:40]
+                print(line)
+                #output2 += line + '\n'
+            print()
