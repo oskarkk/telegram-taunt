@@ -1,10 +1,11 @@
+import info
 import pprint
 from datetime import datetime
 from copy import deepcopy
 
 # create list of taunt IDs and zeros separated by tabs
 # arg must be info.taunts
-def create(taunts):
+def create(taunts=info.taunts):
     with open('data/stats.txt', 'a') as f:
         for x in range(len(taunts[1:])):
             f.write(str(x+1) + '\t0\n')
@@ -112,10 +113,10 @@ class Stats:
             print( self.pretty(obj[x]) )
             if enter: print()
 
-    def exportTaunts(self, info, sort=0, details=0, filename=0):
-        self.various['allTaunts'] = len(info[1:])
+    def exportTaunts(self, tauntList=info.taunts, sort=0, details=0, filename=0):
+        self.various['allTaunts'] = len(tauntList[1:])
         taunts = dict(self.taunts)
-        for x in info[1:]:
+        for x in tauntList[1:]:
             try:
                 taunts[x['id']]
             except KeyError:
@@ -140,8 +141,8 @@ class Stats:
                 f.write(output)
         print(output)
 
-    def exportUsers(self, info, sort, rev, taunts=0, max=None):
-        self.various['allTaunts'] = len(info[1:])
+    def exportUsers(self, tauntList=info.taunts, sort='count', rev=1, showTaunts=0, max=None):
+        self.various['allTaunts'] = len(tauntList[1:])
         taunts = self.taunts
         users = [ dict(self.users[user]) for user in self.users ]
         users.sort(key=lambda x: x[sort], reverse=rev)
@@ -161,22 +162,21 @@ class Stats:
                 f"{lastUse}\n" \
                 f"uses: {user['count']}\n" \
                 f"taunts used: {tauntsUsed}\n"
-            taunts = list(user['taunts'].items())
-            taunts.sort(reverse=1, key=lambda x: x[1])
-            #output2 = ''
-            for num, line in enumerate(output.splitlines()):
-                line = line.ljust(30)[:30] + '  '
-                if len(taunts) > num:
-                    line += str(taunts[num][1]).ljust(4) + \
-                      taunts[num][0].ljust(5) + \
-                      info[ int(taunts[num][0]) ]['name'].ljust(40)[:40]
-                print(line)
-                #output2 += line + '\n'
-            print()
 
-    def recreateStatsFile(self, newStatsFile):
-        import info
-        self.exportTaunts(info.taunts, filename=newStatsFile)
+            if not showTaunts:
+                print(output)
+            else:
+                taunts = list(user['taunts'].items())
+                taunts.sort(reverse=1, key=lambda x: x[1])
+                for num, line in enumerate(output.splitlines()):
+                    line = line.ljust(30)[:30] + '  '
+                    if len(taunts) > num:
+                        line += str(taunts[num][1]).ljust(4) + \
+                          taunts[num][0].ljust(5) + \
+                          tauntList[ int(taunts[num][0]) ]['name'].ljust(40)[:40]
+                    print(line)
+
+            print()
 
 def getEntriesPastTimestamp(inFilename, outFilename, timestamp):
   count = 0
