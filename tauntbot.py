@@ -1,3 +1,5 @@
+#!/usr/bin/python -u
+
 import requests, re, time, os
 import info, stats, textTools as tools
 from config import *
@@ -127,8 +129,7 @@ def sendAnswers(query, matches):
                         + botToken + '/answerInlineQuery', json=dic ).json()
     print(resp)
 
-# main loop
-while 1:
+def run():
     updatesList = getUpdates(botToken, 10)
     # tg gives max 100 updates, so repeat until there are none left
     while updatesList:
@@ -150,3 +151,12 @@ while 1:
         # get the next updates, at the same time confirming updates with id
         # lower than id of the last update in updatesList
         updatesList = getUpdates(botToken, 10, updatesList[-1])
+
+# main loop
+if __name__ == "__main__":
+    while True:
+        try:
+            run()
+        except ConnectionError:
+            sleep(10)
+            continue
