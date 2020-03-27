@@ -1,6 +1,10 @@
-import requests, re, time
+import requests, re, time, os
 import info, stats, textTools as tools
 from config import *
+
+# little setup
+if not os.path.exists('data'):
+    os.makedirs('data')
 
 # return list of results or 0 if there are none
 def getUpdates(token, timeout=0, lastUpdate=0,
@@ -25,7 +29,7 @@ def getUpdates(token, timeout=0, lastUpdate=0,
     else:
         if resp['ok'] != True:
             # write errors to a file
-            with open('error.log', 'a') as f:
+            with open('data/error.log', 'a') as f:
                 f.write(str(dic)+'\n'+str(resp)+'\n\n')
         return 0
 
@@ -140,7 +144,7 @@ while 1:
                 # increment use counter of particular taunt
                 stats.save(update['chosen_inline_result']['result_id'])
                 # save results to file for future processing
-                with open('chosen.log', 'a') as f:
+                with open('data/chosen.log', 'a') as f:
                     update['chosen_inline_result']['time'] = int(time.time())
                     f.write(str(update['chosen_inline_result'])+'\n')
         # get the next updates, at the same time confirming updates with id

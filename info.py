@@ -26,4 +26,4 @@ def convert(file):
 
     return table
 
-taunts = convert('taunty.csv')
+taunts = convert('data/taunty.csv')
