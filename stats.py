@@ -173,3 +173,19 @@ class Stats:
                 print(line)
                 #output2 += line + '\n'
             print()
+
+    def recreateStatsFile(self, newStatsFile):
+        import info
+        self.exportTaunts(info.taunts, filename=newStatsFile)
+
+def getEntriesPastTimestamp(inFilename, outFilename, timestamp):
+  count = 0
+  with open(outFilename, 'a') as outFile:
+    with open(inFilename, 'r') as inFile:
+      for x in inFile:
+#        print(eval(x)['time'])
+        if eval(x)['time'] >= timestamp:
+          outFile.write(x)
+          count += 1
+  print(count)
+
