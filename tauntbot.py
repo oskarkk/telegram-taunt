@@ -18,7 +18,9 @@ def getUpdates(token, timeout=0, lastUpdate=0,
     resp = requests.post( 'https://api.telegram.org/bot'
                         + token + '/getUpdates', json=dic ).json()
 
-    if resp['result']:
+    print(resp)
+
+    if 'result' in resp:
         return resp['result']
     else:
         if resp['ok'] != True:
