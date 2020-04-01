@@ -62,6 +62,8 @@ class Stats:
             user['count'] += 1
             user['last_use'] = entry['time']
             result_id = entry['result_id']
+            # get use counter for a taunt and increase it by 1,
+            # or if it doesn't exist, set it to 0 and increase by 1
             user['taunts'][result_id] = user['taunts'].get(result_id,0) + 1
 
             # add username to the list of user's usernames
@@ -141,7 +143,8 @@ class Stats:
                 f.write(output)
         print(output)
 
-    def exportUsers(self, tauntList=info.taunts, sort='count', rev=1, showTaunts=0, max=None):
+    # best sort values: 'count', 'lastUse'
+    def exportUsers(self, tauntList=info.taunts, sort='count', rev=1, showTaunts=1, max=None):
         self.various['allTaunts'] = len(tauntList[1:])
         taunts = self.taunts
         users = [ dict(self.users[user]) for user in self.users ]
@@ -155,28 +158,29 @@ class Stats:
             firstName = user.get('first_name', '')
             lastName = user.get('last_name', '')
             tauntsUsed = len(user['taunts'])
-            output = \
-                f"{user['id']}: {user['username'][-1]}\n" \
-                f"{firstName} {lastName}\n" \
-                f"{firstUse}\n" \
-                f"{lastUse}\n" \
-                f"uses: {user['count']}\n" \
-                f"taunts used: {tauntsUsed}\n"
+            outputLines = [
+                f"{user['id']}: {user['username'][-1]}",
+                f"{firstName} {lastName}",
+                f"{firstUse}",
+                f"{lastUse}",
+                f"uses: {user['count']}",
+                f"taunts used: {tauntsUsed}"
+            ]
 
-            if not showTaunts:
-                print(output)
-            else:
+            if showTaunts:
                 taunts = list(user['taunts'].items())
                 taunts.sort(reverse=1, key=lambda x: x[1])
-                for num, line in enumerate(output.splitlines()):
-                    line = line.ljust(30)[:30] + '  '
-                    if len(taunts) > num:
-                        line += str(taunts[num][1]).ljust(4) + \
-                          taunts[num][0].ljust(5) + \
-                          tauntList[ int(taunts[num][0]) ]['name'].ljust(40)[:40]
-                    print(line)
-
-            print()
+                for line, taunt in zip(outputLines, taunts):
+                    line = f"{line!s:26.26} gowno"
+#                    if len(taunts) > num:
+#                        tauntUses = taunts[num][1]
+#                        tauntID = taunts[num][0]
+#                        print('%-26.26s  %-3.3s  %-4.4s  %-35.35s' %
+#                            (line, tauntUses, tauntID, tauntList[int(tauntID)]['name'])
+#                        )
+#                    else:
+#                        print(line)
+            print('\n'.join(outputLines),'\n')
 
 def getEntriesPastTimestamp(inFilename, outFilename, timestamp):
   count = 0
