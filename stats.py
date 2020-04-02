@@ -82,23 +82,26 @@ class Stats:
         self.various['usersNum'] = len(users)
 
     def getTaunts(self):
-        taunts = {}
+        self.various['usedTaunts'] = 0
         for entry in self.entries:
-            id = entry['result_id']
+            id = int(entry['result_id'])
 
             try:
-                taunts[id]
+                self.taunts[id]['count']
             except KeyError:
-                taunts[id] = 1
+                self.taunts[id]['count'] = 1
+                self.various['usedTaunts'] += 1
             else:
-                taunts[id] += 1
+                self.taunts[id]['count'] += 1
 
-        self.taunts = taunts
-        self.various['usedTaunts'] = len(taunts)
 
-    def __init__(self, filename='data/chosen.log', start=0):
+    def __init__(self, filename='data/chosen.log', tauntList=info.taunts, start=0):
+        self.taunts = info.taunts
         self.entries = self.answers(start, filename)
-        self.various = { 'uses': len(self.entries) }
+        self.various = {
+            'uses': len(self.entries),
+            'allTaunts': len(tauntList[1:])
+        }
         self.getUsers()
         self.getTaunts()
 
@@ -115,38 +118,29 @@ class Stats:
             print( self.pretty(obj[x]) )
             if enter: print()
 
-    def exportTaunts(self, tauntList=info.taunts, sort=0, details=0, filename=0):
-        self.various['allTaunts'] = len(tauntList[1:])
-        taunts = dict(self.taunts)
-        for x in tauntList[1:]:
-            try:
-                taunts[x['id']]
-            except KeyError:
-                taunts[x['id']] = 0
-            finally:
-                if not details:
-                    taunts[x['id']] = ( x['id'],
-                                        str( taunts[x['id']] ) )
-                else:
-                    taunts[x['id']] = ( x['id'],
-                                        str( taunts[x['id']] ),
-                                        x['name'] )
+    def exportTaunts(self, sort=0, details=0, filename=0, min=0):
+        outputList = []
+        for taunt in self.taunts[1:]:
+            count = taunt.get('count',0)
+            if count < min: continue
+            if details:
+                outputList += [ [taunt['id'], count, taunt['name']] ]
+            else:
+                outputList += [ [taunt['id'], count] ]
 
-        tauntList = [taunts[x] for x in taunts]
+        if sort:
+            outputList.sort(key=lambda x: x[1], reverse=1)
 
-        # sort by id if sort=0, sort by uses and reverse if sort=1
-        tauntList.sort(key=lambda x: int(x[sort]), reverse=sort)
+        for taunt in outputList: taunt[1] = str(taunt[1])
 
-        output = '\n'.join([ '\t'.join(taunt) for taunt in tauntList ])
+        outputStr = '\n'.join([ '\t'.join(taunt) for taunt in outputList ])
         if filename:
             with open(filename, 'w') as f:
-                f.write(output)
-        print(output)
+                f.write(outputStr)
+        return outputStr
 
-    # best sort values: 'count', 'lastUse'
-    def exportUsers(self, tauntList=info.taunts, sort='count', rev=1, showTaunts=1, max=None):
-        self.various['allTaunts'] = len(tauntList[1:])
-        taunts = self.taunts
+    # useful sort values: 'count', 'last_use'
+    def exportUsers(self, sort='count', rev=1, showTaunts=1, max=None):
         users = [ dict(self.users[user]) for user in self.users ]
         users.sort(key=lambda x: x[sort], reverse=rev)
 
@@ -168,18 +162,15 @@ class Stats:
             ]
 
             if showTaunts:
-                taunts = list(user['taunts'].items())
-                taunts.sort(reverse=1, key=lambda x: x[1])
-                for line, taunt in zip(outputLines, taunts):
-                    line = f"{line!s:26.26} gowno"
-#                    if len(taunts) > num:
-#                        tauntUses = taunts[num][1]
-#                        tauntID = taunts[num][0]
-#                        print('%-26.26s  %-3.3s  %-4.4s  %-35.35s' %
-#                            (line, tauntUses, tauntID, tauntList[int(tauntID)]['name'])
-#                        )
-#                    else:
-#                        print(line)
+                usersTaunts = list(user['taunts'].items())
+                usersTaunts.sort(reverse=1, key=lambda x: x[1])
+                usersTaunts = usersTaunts[:len(outputLines)]
+
+                for n, taunt in enumerate(usersTaunts):
+                    outputLines[n] = f"{outputLines[n]:28.26}" \
+                        f"{taunt[1]!s:4.3}" \
+                        f"{taunt[0]:5.4}" \
+                        f"{self.taunts[int(taunt[0])]['name']:35.35}"
             print('\n'.join(outputLines),'\n')
 
 def getEntriesPastTimestamp(inFilename, outFilename, timestamp):
