@@ -39,6 +39,8 @@ def sort(tauntList=0, max=50):
 
 class Stats:
 
+    # parse python objects written to chosen.log, starting at n-th last line
+    # TODO: stop usind 'id' as a var name; replace eval with JSON
     def answers(self, start, filename):
         with open(filename, 'r') as f:
             lines = list(f)
@@ -95,16 +97,17 @@ class Stats:
                 self.taunts[id]['count'] += 1
 
 
-    def __init__(self, filename='data/chosen.log', tauntList=info.taunts, start=0):
+    def __init__(self, filename='data/chosen.log', start=0):
         self.taunts = info.taunts
         self.entries = self.answers(start, filename)
         self.various = {
             'uses': len(self.entries),
-            'allTaunts': len(tauntList[1:])
+            'allTaunts': len(self.taunts[1:])
         }
         self.getUsers()
         self.getTaunts()
 
+    # get pretty formatted string representation of obj
     def pretty(self, obj): return pprint.pformat(obj, indent=4)
 
     def print(self, obj, enter=1, userTaunts=0):
@@ -118,7 +121,9 @@ class Stats:
             print( self.pretty(obj[x]) )
             if enter: print()
 
-    def exportTaunts(self, sort=0, details=0, filename=0, min=0):
+    # call with filename only to recreate stats.txt from chosen.log
+    # call exportTaunts(sort=1, details=1, num=20) to get short toplist
+    def exportTaunts(self, sort=0, details=0, filename=0, min=0, num=None):
         outputList = []
         for taunt in self.taunts[1:]:
             count = taunt.get('count',0)
@@ -130,6 +135,9 @@ class Stats:
 
         if sort:
             outputList.sort(key=lambda x: x[1], reverse=1)
+
+        # get only the <num> first lines
+        if num: outputList = outputList[:num]
 
         for taunt in outputList: taunt[1] = str(taunt[1])
 
@@ -152,6 +160,7 @@ class Stats:
             firstName = user.get('first_name', '')
             lastName = user.get('last_name', '')
             tauntsUsed = len(user['taunts'])
+            # show info about user
             outputLines = [
                 f"{user['id']}: {user['username'][-1]}",
                 f"{firstName} {lastName}",
@@ -161,6 +170,7 @@ class Stats:
                 f"taunts used: {tauntsUsed}"
             ]
 
+            # add user's taunt toplist on the right of the info
             if showTaunts:
                 usersTaunts = list(user['taunts'].items())
                 usersTaunts.sort(reverse=1, key=lambda x: x[1])
@@ -173,6 +183,8 @@ class Stats:
                         f"{self.taunts[int(taunt[0])]['name']:35.35}"
             print('\n'.join(outputLines),'\n')
 
+# for chosen.log; useful when you've made a mess with various bot instances
+# and want to glue logs into one
 def getEntriesPastTimestamp(inFilename, outFilename, timestamp):
   count = 0
   with open(outFilename, 'a') as outFile:
@@ -183,4 +195,3 @@ def getEntriesPastTimestamp(inFilename, outFilename, timestamp):
           outFile.write(x)
           count += 1
   print(count)
-
