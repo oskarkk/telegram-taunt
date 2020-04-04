@@ -40,7 +40,7 @@ Show 50 taunts sorted by ID starting from ID "234"
 
 # Requirements
 
-* python3
+* python3.6 or higher
 * [requests](http://docs.python-requests.org/en/master/)
 
 # Additional info
