@@ -1,3 +1,5 @@
+#!/usr/bin/python3 -i
+
 import info
 import pprint
 from datetime import datetime
@@ -195,3 +197,7 @@ def getEntriesPastTimestamp(inFilename, outFilename, timestamp):
           outFile.write(x)
           count += 1
   print(count)
+
+if __name__ == '__main__':
+    s = Stats(start=100)
+    s.exportUsers(max=10)
