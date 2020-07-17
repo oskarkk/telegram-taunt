@@ -16,13 +16,14 @@ def getUpdates(token, timeout=0, lastUpdate=0,
             'limit': limit
           }
 
-    # "An update is considered confirmed as soon as getUpdates is called 
+    # "An update is considered confirmed as soon as getUpdates is called
     # with an offset higher than its update_id."
     if lastUpdate:
         dic['offset'] = lastUpdate['update_id'] + 1
 
+    # request times out 5s after expected response from the server (long polling)
     resp = requests.post( 'https://api.telegram.org/bot'
-                        + token + '/getUpdates', json=dic ).json()
+                        + token + '/getUpdates', json=dic, timeout=timeout+5 ).json()
 
     print(resp)
 
@@ -130,7 +131,7 @@ def sendAnswers(query, matches):
     print(resp)
 
 def run():
-    updatesList = getUpdates(botToken, 10)
+    updatesList = getUpdates(botToken, timeout=60)
     # tg gives max 100 updates, so repeat until there are none left
     while updatesList:
         for update in updatesList:
@@ -157,6 +158,10 @@ if __name__ == "__main__":
     while True:
         try:
             run()
-        except ConnectionError:
-            sleep(10)
+        # was "except ConnectionError" and that was totally wrong
+        except requests.exceptions.RequestException as e:
+            with open('data/error.log', 'a') as f:
+                f.write('catched: ' + str(e) + '\n')
+            time.sleep(10)
+            # infinite retries
             continue
