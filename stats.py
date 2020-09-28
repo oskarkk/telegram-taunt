@@ -100,7 +100,10 @@ class Stats:
 
 
     def __init__(self, filename='data/chosen.log', start=0):
-        self.taunts = info.taunts
+        #self.taunts = info.taunts[:]
+        # copy the entire info.taunts, otherwise counts (see getTaunts) will
+        # be increased with every instance of Stats
+        self.taunts = [info.taunts[0]] + [dict(d) for d in info.taunts[1:]]
         self.entries = self.answers(start, filename)
         self.various = {
             'uses': len(self.entries),
