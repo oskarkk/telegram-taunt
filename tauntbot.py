@@ -1,6 +1,7 @@
 #!/usr/bin/python3 -u
 
-import requests, re, time, os
+#import re
+import requests, time, os
 import info, stats, textTools as tools
 from config import *
 
@@ -54,7 +55,9 @@ def compositeSearch(query):
     # helper function for matching info fields and query
     def check(field):
         t = tools.clean(field)
-        return re.search(r'\b'+part[0], t)
+        if t.startswith(part[0]) or ' '+part[0] in t:
+            return True
+        return False
 
     # I am deeply sorry for this symphony of fors and ifs
     for part in parts:
@@ -131,7 +134,7 @@ def sendAnswers(query, matches):
     print(resp)
 
 def run():
-    updatesList = getUpdates(botToken, timeout=60)
+    updatesList = getUpdates(botToken, timeout=300)
     # tg gives max 100 updates, so repeat until there are none left
     while updatesList:
         for update in updatesList:
