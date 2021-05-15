@@ -104,10 +104,10 @@ def compare(query):
     except ValueError:
         pass
     else:
-        # check if given number is <= than number of taunts
+        # check if given number is <= number of taunts and >0
         tauntsNum = len(info.taunts[1:])
-        if num <= tauntsNum:
-            return list( range(num, min(num+50,tauntsNum+1)) )
+        if num in range(1, tauntsNum+1):
+            return list( range(num, min(num+50, tauntsNum+1)) )
 
     # find matching taunts by string comparison and sort them by popularity
     matches = compositeSearch(query)
