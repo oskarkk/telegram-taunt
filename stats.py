@@ -4,6 +4,7 @@ import info
 import pprint
 from datetime import datetime
 from copy import deepcopy
+from wcwidth import wcswidth as widelen
 
 # create list of taunt IDs and zeros separated by tabs
 # arg must be info.taunts
@@ -180,9 +181,15 @@ class Stats:
                 usersTaunts = list(user['taunts'].items())
                 usersTaunts.sort(reverse=1, key=lambda x: x[1])
                 usersTaunts = usersTaunts[:len(outputLines)]
-
                 for n, taunt in enumerate(usersTaunts):
-                    outputLines[n] = f"{outputLines[n]:28.26}" \
+                    # get the correct number of char columns
+                    # in the terminal that the string is occupying
+                    linelen = widelen(outputLines[n])
+                    if linelen > 28:
+                        outputLines[n] = outputLines[n][:-linelen+28]
+                    else:
+                        outputLines[n] += ' ' * (28-linelen)
+                    outputLines[n] += "   " \
                         f"{taunt[1]!s:4.3}" \
                         f"{taunt[0]:5.4}" \
                         f"{self.taunts[int(taunt[0])]['name']:35.35}"

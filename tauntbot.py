@@ -24,17 +24,17 @@ def getUpdates(token, timeout=0, lastUpdate=0,
 
     # request times out 5s after expected response from the server (long polling)
     resp = requests.post( 'https://api.telegram.org/bot'
-                        + token + '/getUpdates', json=dic, timeout=timeout+5 ).json()
+                        + token + '/getUpdates', json=dic, timeout=timeout+5 )
+    print(resp.text)
+    updates = resp.json()
 
-    print(resp)
-
-    if 'result' in resp:
-        return resp['result']
+    if 'result' in updates:
+        return updates['result']
     else:
-        if resp['ok'] != True:
+        if updates['ok'] != True:
             # write errors to a file
             with open('data/error.log', 'a') as f:
-                f.write(str(dic)+'\n'+str(resp)+'\n\n')
+                f.write(str(dic)+'\n'+str(updates)+'\n\n')
         return 0
 
 def compositeSearch(query):
