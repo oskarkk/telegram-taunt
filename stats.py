@@ -5,6 +5,7 @@ import pprint
 from datetime import datetime
 from copy import deepcopy
 from wcwidth import wcswidth as widelen
+import matplotlib.pyplot as plt
 
 # create list of taunt IDs and zeros separated by tabs
 # arg must be info.taunts
@@ -44,12 +45,18 @@ class Stats:
 
     # parse python objects written to chosen.log, starting at n-th last line
     # TODO: stop usind 'id' as a var name; replace eval with JSON
-    def answers(self, start, filename):
+    def answers(self, start, filename, start_date, end_date):
         with open(filename, 'r') as f:
             lines = list(f)
         answers = []
+        start_date = start_date and datetime.fromisoformat(start_date).timestamp()
+        end_date = end_date and datetime.fromisoformat(end_date).timestamp()
         for line in lines[-start:]:
-            answers.append( eval(line[:-1]) )
+            obj = eval(line[:-1])
+            date = obj['time']
+            if start_date and date < start_date: continue
+            if end_date and date > end_date: continue
+            answers.append(obj)
         return answers
 
     def getUsers(self):
@@ -100,12 +107,12 @@ class Stats:
                 self.taunts[id]['count'] += 1
 
 
-    def __init__(self, filename='data/chosen.log', start=0):
+    def __init__(self, filename='data/chosen.log', start=0, start_date=None, end_date=None):
         #self.taunts = info.taunts[:]
         # copy the entire info.taunts, otherwise counts (see getTaunts) will
         # be increased with every instance of Stats
         self.taunts = [info.taunts[0]] + [dict(d) for d in info.taunts[1:]]
-        self.entries = self.answers(start, filename)
+        self.entries = self.answers(start, filename, start_date, end_date)
         self.various = {
             'uses': len(self.entries),
             'allTaunts': len(self.taunts[1:])
@@ -207,6 +214,23 @@ def getEntriesPastTimestamp(inFilename, outFilename, timestamp):
           outFile.write(x)
           count += 1
   print(count)
+
+
+def plot():
+  x = []
+  users = []
+  uses = []
+  for i in range(1,12):
+    start = '2021-'+str(i).rjust(2,'0')+'-01'
+    end = '2021-'+str(i+1).rjust(2,'0')+'-01'
+    s = Stats(start_date = start, end_date = end)
+    if s.various['uses'] == 0: break
+    x.append(i)
+    users.append(s.various['usersNum'])
+    uses.append(s.various['uses'])
+  plt.plot(x, users)
+  plt.savefig('img/plot.png', format='png')
+
 
 if __name__ == '__main__':
     s = Stats(start=100)

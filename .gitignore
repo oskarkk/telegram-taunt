@@ -1,4 +1,5 @@
 data/
+img/
 .vscode
 config.py
 __pycache__/
