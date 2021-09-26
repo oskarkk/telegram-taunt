@@ -6,6 +6,7 @@ from datetime import datetime
 from copy import deepcopy
 from wcwidth import wcswidth as widelen
 import matplotlib.pyplot as plt
+import math
 
 # create list of taunt IDs and zeros separated by tabs
 # arg must be info.taunts
@@ -216,20 +217,60 @@ def getEntriesPastTimestamp(inFilename, outFilename, timestamp):
   print(count)
 
 
-def plot():
-  x = []
-  users = []
-  uses = []
-  for i in range(1,12):
-    start = '2021-'+str(i).rjust(2,'0')+'-01'
-    end = '2021-'+str(i+1).rjust(2,'0')+'-01'
-    s = Stats(start_date = start, end_date = end)
-    if s.various['uses'] == 0: break
-    x.append(i)
-    users.append(s.various['usersNum'])
-    uses.append(s.various['uses'])
-  plt.plot(x, users)
-  plt.savefig('img/plot.png', format='png')
+def plot(start='2021-01',end='2021-12'):
+    labels = []
+    date_ranges = []
+    users = []
+    uses = []
+
+    dates = [int(x) for x in start.split('-') + end.split('-')]
+    ym_start = 12*int(dates[0]) + int(dates[1]) - 1
+    ym_end = 12*int(dates[2]) + int(dates[3]) - 1
+
+    for ym in range(ym_start, ym_end):
+        y, m = divmod(ym, 12)
+        this_month = str(y) + '-' + str(m + 1).rjust(2, '0')
+        y, m = divmod(ym+1, 12)
+        next_month = str(y) + '-' + str(m + 1).rjust(2, '0')
+        labels.append(this_month)
+        date_ranges.append((this_month,next_month))
+
+    for a, b in date_ranges:
+        s = Stats(start_date = a+'-01', end_date = b+'-01')
+        users.append(s.various['usersNum'])
+        uses.append(s.various['uses'])
+
+    plt.xticks(rotation=55, ha='right', va='top')
+    plt.subplots_adjust(top=0.85, bottom=0.20, right=0.87)
+    plt.grid(linestyle = ':', color = 'lightgray', linewidth = 0.8)
+
+    ax1 = plt.gca()
+    ax2 = plt.gca().twinx()
+
+    # rounding up to the int that divided by 5 will give number divisible by 5 or 50
+    grid_users = math.ceil(max(users)/25)*25
+    grid_uses = math.ceil(max(uses)/250)*250
+
+    plt.title('Rozwój TauntBota', pad=20, size='x-large')
+    ax1.set_ylabel('Użytkownicy', color='C0', fontweight="bold")
+    ax2.set_ylabel('Użycia', color='C4', fontweight="bold")
+    ax1.set_ylim(0, grid_users*1.1)
+    ax2.set_ylim(0, grid_uses*1.1)
+
+    ax1.set_yticks([n*grid_users/5 for n in range(0,6)])
+    ax2.set_yticks([n*grid_uses/5 for n in range(0,6)])
+    
+    ax1.plot(labels, users, color='C0')
+    ax2.plot(labels, uses, color='C4')
+
+    ticks = ax1.get_xticks()
+    if len(ticks) > 20:
+        ax1.set_xticks(ticks[::3])
+    elif len(ticks) > 10:
+        ax1.set_xticks(ticks[::2])
+
+    plt.savefig('img/plot-'+start+'-'+end+'.png', format='png', dpi=200)
+    plt.close()
 
 
 if __name__ == '__main__':
