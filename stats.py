@@ -216,12 +216,24 @@ def getEntriesPastTimestamp(inFilename, outFilename, timestamp):
           count += 1
   print(count)
 
+def axis(ys, label, color, ticks, divisible):
+    if not plt.gca().get_ylabel():
+        ax = plt.gca()
+    else:
+        ax = plt.gca().twinx()
+    # rounding up to the int that divided by <ticks> will give number divisible by <divisible>
+    grid = math.ceil(max(ys)/ticks/divisible)*ticks*divisible
+    ax.set_ylabel(label, color=color, fontweight="bold")
+    ax.set_ylim(0, grid*1.1)
+    ax.set_yticks([n*grid/ticks for n in range(0,ticks+1)])
+    return ax
 
-def plot(start='2021-01',end='2021-12'):
+def plot(start='2021-01', end='2021-12', separate_authors=False):
     labels = []
     date_ranges = []
     users = []
     uses = []
+    uses_minus_authors = []
 
     dates = [int(x) for x in start.split('-') + end.split('-')]
     ym_start = 12*int(dates[0]) + int(dates[1]) - 1
@@ -239,29 +251,30 @@ def plot(start='2021-01',end='2021-12'):
         s = Stats(start_date = a+'-01', end_date = b+'-01')
         users.append(s.various['usersNum'])
         uses.append(s.various['uses'])
+        if not separate_authors: continue
+        authors_uses = 0
+        authors = [138268771, 266306075]
+        authors.append(496364629)
+        for use in s.entries:
+            if use['from']['id'] in authors:
+                authors_uses += 1
+        uses_minus_authors.append(s.various['uses'] - authors_uses)
 
     plt.xticks(rotation=55, ha='right', va='top')
     plt.subplots_adjust(top=0.85, bottom=0.20, right=0.87)
     plt.grid(linestyle = ':', color = 'lightgray', linewidth = 0.8)
-
-    ax1 = plt.gca()
-    ax2 = plt.gca().twinx()
-
-    # rounding up to the int that divided by 5 will give number divisible by 5 or 50
-    grid_users = math.ceil(max(users)/25)*25
-    grid_uses = math.ceil(max(uses)/250)*250
-
     plt.title('Rozwój TauntBota', pad=20, size='x-large')
-    ax1.set_ylabel('Użytkownicy', color='C0', fontweight="bold")
-    ax2.set_ylabel('Użycia', color='C4', fontweight="bold")
-    ax1.set_ylim(0, grid_users*1.1)
-    ax2.set_ylim(0, grid_uses*1.1)
 
-    ax1.set_yticks([n*grid_users/5 for n in range(0,6)])
-    ax2.set_yticks([n*grid_uses/5 for n in range(0,6)])
-    
-    ax1.plot(labels, users, color='C0')
-    ax2.plot(labels, uses, color='C4')
+    ax1 = axis(users, 'Użytkownicy', 'C0', 5, 5)
+    ax2 = axis(uses, 'Użycia', 'C4', 5, 50)
+
+    ax1.plot(labels, users, color='C0', label='użytkownicy bota')
+    ax2.plot(labels, uses, color='C4', label='użycia bota')
+    if separate_authors:
+        ax2.plot(labels, uses_minus_authors, '--', color='C4', label='użycia z wyłączeniem autorów')
+        plt.subplots_adjust(bottom=0.23)
+        plt.legend(loc='lower center', bbox_transform=plt.gcf().transFigure,
+            bbox_to_anchor=(0.5, 0.007), ncol=4, frameon=0)
 
     ticks = ax1.get_xticks()
     if len(ticks) > 20:
@@ -271,7 +284,6 @@ def plot(start='2021-01',end='2021-12'):
 
     plt.savefig('img/plot-'+start+'-'+end+'.png', format='png', dpi=200)
     plt.close()
-
 
 if __name__ == '__main__':
     s = Stats(start=100)
