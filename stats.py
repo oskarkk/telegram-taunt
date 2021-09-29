@@ -67,17 +67,24 @@ class Stats:
 
             user = users.setdefault(id, dict(entry['from'],
                     first_use = entry['time'],
-                    count = 0,
+                    use_count = 0,
+                    taunt_count = 0,
                     taunts = {},
                     username = []
             ))
 
-            user['count'] += 1
+            user['use_count'] += 1
             user['last_use'] = entry['time']
             result_id = entry['result_id']
+
+            # increment unique taunt count
+            if result_id not in user['taunts']:
+                user['taunt_count'] += 1
+
             # get use counter for a taunt and increase it by 1,
             # or if it doesn't exist, set it to 0 and increase by 1
             user['taunts'][result_id] = user['taunts'].get(result_id,0) + 1
+
 
             # add username to the list of user's usernames
             try:
@@ -161,8 +168,8 @@ class Stats:
                 f.write(outputStr)
         return outputStr
 
-    # useful sort values: 'count', 'last_use'
-    def exportUsers(self, sort='count', rev=1, showTaunts=1, max=None):
+    # useful sort values: 'use_count', 'last_use'
+    def exportUsers(self, sort='use_count', rev=1, showTaunts=1, max=None):
         users = [ dict(self.users[user]) for user in self.users ]
         users.sort(key=lambda x: x[sort], reverse=rev)
 
@@ -173,15 +180,14 @@ class Stats:
             lastUse = datetime.fromtimestamp(user['last_use'])
             firstName = user.get('first_name', '')
             lastName = user.get('last_name', '')
-            tauntsUsed = len(user['taunts'])
             # show info about user
             outputLines = [
                 f"{user['id']}: {user['username'][-1]}",
                 f"{firstName} {lastName}",
                 f"{firstUse}",
                 f"{lastUse}",
-                f"uses: {user['count']}",
-                f"taunts used: {tauntsUsed}"
+                f"uses: {user['use_count']}",
+                f"taunts used: {user['taunt_count']}"
             ]
 
             # add user's taunt toplist on the right of the info
