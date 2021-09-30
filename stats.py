@@ -7,6 +7,7 @@ from copy import deepcopy
 from wcwidth import wcswidth as widelen
 import matplotlib.pyplot as plt
 import math
+from itertools import groupby
 
 # create list of taunt IDs and zeros separated by tabs
 # arg must be info.taunts
@@ -222,6 +223,29 @@ def getEntriesPastTimestamp(inFilename, outFilename, timestamp):
           count += 1
   print(count)
 
+
+def year_month(timestamp):
+    date = datetime.fromtimestamp(timestamp)
+    return str(date.year) + '-' + str(date.month).rjust(2, '0')
+
+def months(start='2019-01-01', end='2022-01-01'):
+    entries = Stats(start_date = start, end_date = end).entries
+    months = {k: list(g) for k, g in groupby(entries, key=lambda entry: year_month(entry['time']) )}
+
+    users_num = []
+    uses_num = []
+    uses_minus_authors = []
+    authors = [138268771, 266306075, 496364629]
+
+    for month in months.values():
+        users = {entry['from']['id'] for entry in month}
+        users_num.append(len(users))
+        uses_num.append(len(month))
+        uses_authors = sum(1 for entry in month if entry['from']['id'] in authors)
+        uses_minus_authors.append(len(month) - uses_authors)
+
+    return months.keys(), users_num, uses_num, uses_minus_authors
+
 def axis(ys, label, color, ticks, divisible):
     if not plt.gca().get_ylabel():
         ax = plt.gca()
@@ -234,37 +258,8 @@ def axis(ys, label, color, ticks, divisible):
     ax.set_yticks([n*grid/ticks for n in range(0,ticks+1)])
     return ax
 
-def plot(start='2021-01', end='2021-12', separate_authors=False):
-    labels = []
-    date_ranges = []
-    users = []
-    uses = []
-    uses_minus_authors = []
-
-    dates = [int(x) for x in start.split('-') + end.split('-')]
-    ym_start = 12*int(dates[0]) + int(dates[1]) - 1
-    ym_end = 12*int(dates[2]) + int(dates[3]) - 1
-
-    for ym in range(ym_start, ym_end):
-        y, m = divmod(ym, 12)
-        this_month = str(y) + '-' + str(m + 1).rjust(2, '0')
-        y, m = divmod(ym+1, 12)
-        next_month = str(y) + '-' + str(m + 1).rjust(2, '0')
-        labels.append(this_month)
-        date_ranges.append((this_month,next_month))
-
-    for a, b in date_ranges:
-        s = Stats(start_date = a+'-01', end_date = b+'-01')
-        users.append(s.various['usersNum'])
-        uses.append(s.various['uses'])
-        if not separate_authors: continue
-        authors_uses = 0
-        authors = [138268771, 266306075]
-        authors.append(496364629)
-        for use in s.entries:
-            if use['from']['id'] in authors:
-                authors_uses += 1
-        uses_minus_authors.append(s.various['uses'] - authors_uses)
+def plot(start='2019-01-01', end='2021-12-01', separate_authors=False):
+    labels, users, uses, uses_minus_authors = months(start, end)
 
     plt.xticks(rotation=55, ha='right', va='top')
     plt.subplots_adjust(top=0.85, bottom=0.20, right=0.87)
@@ -291,6 +286,26 @@ def plot(start='2021-01', end='2021-12', separate_authors=False):
     plt.savefig('img/plot-'+start+'-'+end+'.png', format='png', dpi=200)
     plt.close()
 
+# not used
+def months_list(start='2021-01', end='2021-12'):
+    labels = []
+    date_ranges = []
+
+    dates = [int(x) for x in start.split('-') + end.split('-')]
+    ym_start = 12*int(dates[0]) + int(dates[1]) - 1
+    ym_end = 12*int(dates[2]) + int(dates[3]) - 1
+
+    for ym in range(ym_start, ym_end):
+        y, m = divmod(ym, 12)
+        this_month = str(y) + '-' + str(m + 1).rjust(2, '0')
+        y, m = divmod(ym+1, 12)
+        next_month = str(y) + '-' + str(m + 1).rjust(2, '0')
+        labels.append(this_month)
+        date_ranges.append((this_month,next_month))
+    
+    return labels, date_ranges
+
 if __name__ == '__main__':
     s = Stats(start=100)
     s.exportUsers(max=10)
+
