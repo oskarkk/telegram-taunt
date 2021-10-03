@@ -228,9 +228,12 @@ def year_month(timestamp):
     date = datetime.fromtimestamp(timestamp)
     return str(date.year) + '-' + str(date.month).rjust(2, '0')
 
-def months(start='2019-01-01', end='2022-01-01'):
+def split_months(start='2019-01-01', end='2022-01-01'):
     entries = Stats(start_date = start, end_date = end).entries
-    months = {k: list(g) for k, g in groupby(entries, key=lambda entry: year_month(entry['time']) )}
+    
+    months = {}
+    for k, g in groupby(entries, key=lambda x: year_month(x['time'])):
+        months.setdefault(k,[]).extend(list(g))
 
     users_num = []
     uses_num = []
@@ -246,6 +249,19 @@ def months(start='2019-01-01', end='2022-01-01'):
 
     return months.keys(), users_num, uses_num, uses_minus_authors
 
+def split_hours(start=None, end=None):
+    def get_hour(timestamp):
+        return datetime.fromtimestamp(timestamp).hour
+
+    entries = Stats(start_date = start, end_date = end).entries
+
+    hours = {}
+    for k, g in groupby(entries, key=lambda x: get_hour(x['time'])):
+        hours.setdefault(k,[]).extend(list(g))
+    
+    hours = {k: len(v) for k, v in hours.items()}
+    return [(k, hours[k]) for k in sorted(hours)]
+
 def axis(ys, label, color, ticks, divisible):
     if not plt.gca().get_ylabel():
         ax = plt.gca()
@@ -258,8 +274,8 @@ def axis(ys, label, color, ticks, divisible):
     ax.set_yticks([n*grid/ticks for n in range(0,ticks+1)])
     return ax
 
-def plot(start='2019-01-01', end='2021-12-01', separate_authors=False):
-    labels, users, uses, uses_minus_authors = months(start, end)
+def plot_months(start='2019-01-01', end='2021-12-01', separate_authors=False):
+    labels, users, uses, uses_minus_authors = split_months(start, end)
 
     plt.xticks(rotation=55, ha='right', va='top')
     plt.subplots_adjust(top=0.85, bottom=0.20, right=0.87)
@@ -284,6 +300,19 @@ def plot(start='2019-01-01', end='2021-12-01', separate_authors=False):
         ax1.set_xticks(ticks[::2])
 
     plt.savefig('img/plot-'+start+'-'+end+'.png', format='png', dpi=200)
+    plt.close()
+
+def plot_hours(start=None, end=None):
+    labels, uses = zip(*split_hours(start, end))
+    plt.subplots_adjust(top=0.85)
+    plt.grid(linestyle = ':', color = 'lightgray', linewidth = 0.8)
+    plt.title('Użycia TauntBota wg godzin', pad=20, size='x-large')
+    
+    ax1 = axis(uses, 'Użycia', 'C0', 5, 25)
+    ax1.plot(labels, uses, color='C0', label='użytkownicy bota')
+    ax1.set_xticks(range(0,24,2))
+
+    plt.savefig('img/plot-hours.png', format='png', dpi=200)
     plt.close()
 
 # not used
