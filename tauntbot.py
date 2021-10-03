@@ -140,8 +140,14 @@ def run():
         for update in updatesList:
             # when someone is requesting taunts from the bot
             if 'inline_query' in update:
-                matches = compare(update['inline_query']['query'])
-                sendAnswers(update['inline_query']['id'], matches)
+                inline_query = update['inline_query']
+                matches = compare(inline_query['query'])
+                # new 2021: save all queries and answers
+                with open('data/shown.log', 'a') as f:
+                    inline_query['time'] = int(time.time())
+                    inline_query['matches'] = matches
+                    f.write(str(inline_query)+'\n')
+                sendAnswers(inline_query['id'], matches)
             # when tg informs the bot that someone has chosen a taunt
             # (for every result there may or may not be an associated query,
             # remember caching)

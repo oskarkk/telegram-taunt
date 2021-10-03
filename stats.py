@@ -8,6 +8,7 @@ from wcwidth import wcswidth as widelen
 import matplotlib.pyplot as plt
 import math
 from itertools import groupby
+from collections import Counter
 
 # create list of taunt IDs and zeros separated by tabs
 # arg must be info.taunts
@@ -226,8 +227,9 @@ def getEntriesPastTimestamp(inFilename, outFilename, timestamp):
 
 def year_month(timestamp):
     date = datetime.fromtimestamp(timestamp)
-    return str(date.year) + '-' + str(date.month).rjust(2, '0')
+    return f'{date.year}-{date.month:02}'
 
+# TODO: don't split the list? just iterate?
 def split_months(start='2019-01-01', end='2022-01-01'):
     entries = Stats(start_date = start, end_date = end).entries
     
@@ -299,7 +301,9 @@ def plot_months(start='2019-01-01', end='2021-12-01', separate_authors=False):
     elif len(ticks) > 10:
         ax1.set_xticks(ticks[::2])
 
-    plt.savefig('img/plot-'+start+'-'+end+'.png', format='png', dpi=200)
+    filename = f'img/plot-{start}-{end}.png'
+    plt.savefig(filename, format='png', dpi=200)
+    print(filename)
     plt.close()
 
 def plot_hours(start=None, end=None):
@@ -312,7 +316,9 @@ def plot_hours(start=None, end=None):
     ax1.plot(labels, uses, color='C0', label='użytkownicy bota')
     ax1.set_xticks(range(0,24,2))
 
-    plt.savefig('img/plot-hours.png', format='png', dpi=200)
+    filename = 'img/plot-hours.png'
+    plt.savefig(filename, format='png', dpi=200)
+    print(filename)
     plt.close()
 
 # not used
@@ -334,7 +340,36 @@ def months_list(start='2021-01', end='2021-12'):
     
     return labels, date_ranges
 
+# TODO: check chat types
+# TODO: how many of new users don't ever write anything? (remember caching)
+def outputlog(n=50):
+    answers = []
+    wrong = 0
+    with open('data/output-static.log', 'r') as f:
+        for line in f:
+            try:
+                obj = eval(line[:-1])
+                answers.append(obj)
+            except:
+                wrong += 1
+                #print(line)
+                continue
+
+    updates = []
+    for answer in answers:
+        if 'result' in answer:
+            for update in answer['result']:
+                updates.append(update)
+
+    inlines = [x['inline_query'] for x in updates if 'inline_query' in x]
+    queries = [x['query'] for x in inlines]
+    counted_queries = Counter(queries)
+    top_queries = counted_queries.most_common(n)
+    print(f'razem: {len(queries)}')
+    print(f'unikalnych: {len(counted_queries)}')
+    for x in top_queries: print(f'{x[1]}\t{x[0]}')
+    return counted_queries
+
 if __name__ == '__main__':
     s = Stats(start=100)
     s.exportUsers(max=10)
-
