@@ -276,7 +276,7 @@ def axis(ys, label, color, ticks, divisible):
     ax.set_yticks([n*grid/ticks for n in range(0,ticks+1)])
     return ax
 
-def plot_months(start='2019-01-01', end='2021-12-01', separate_authors=False):
+def plot_months(start='2019-01-01', end='2022-06-01', separate_authors=False):
     labels, users, uses, uses_minus_authors = split_months(start, end)
 
     plt.xticks(rotation=55, ha='right', va='top')
@@ -312,7 +312,7 @@ def plot_hours(start=None, end=None):
     plt.grid(linestyle = ':', color = 'lightgray', linewidth = 0.8)
     plt.title('Użycia TauntBota wg godzin', pad=20, size='x-large')
     
-    ax1 = axis(uses, 'Użycia', 'C0', 5, 25)
+    ax1 = axis(uses, 'Użycia', 'C0', 5, 100)
     ax1.plot(labels, uses, color='C0', label='użytkownicy bota')
     ax1.set_xticks(range(0,24,2))
 
