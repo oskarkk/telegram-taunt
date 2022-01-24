@@ -1,6 +1,9 @@
 #!/usr/bin/python3 -i
 
 import info
+import tauntbot
+import textTools
+
 import pprint
 from datetime import datetime
 from copy import deepcopy
@@ -369,10 +372,10 @@ def months_list(start='2021-01', end='2021-12'):
 
 # TODO: check chat types
 # TODO: how many of new users don't ever write anything? (remember caching)
-def outputlog(n=50):
+def outputlog(n=50, min=0, print_=True):
     answers = []
     wrong = 0
-    with open('data/output-static.log', 'r') as f:
+    with open('data/shown.log', 'r') as f:
         for line in f:
             try:
                 obj = eval(line[:-1])
@@ -382,20 +385,26 @@ def outputlog(n=50):
                 #print(line)
                 continue
 
-    updates = []
-    for answer in answers:
-        if 'result' in answer:
-            for update in answer['result']:
-                updates.append(update)
-
-    inlines = [x['inline_query'] for x in updates if 'inline_query' in x]
-    queries = [x['query'] for x in inlines]
+    queries = [x['query'] for x in answers if len(x['query']) >= min]
     counted_queries = Counter(queries)
-    top_queries = counted_queries.most_common(n)
-    print(f'razem: {len(queries)}')
-    print(f'unikalnych: {len(counted_queries)}')
-    for x in top_queries: print(f'{x[1]}\t{x[0]}')
+
+    if print_:
+        top_queries = counted_queries.most_common(n)
+        print(f'razem: {len(queries)}')
+        print(f'unikalnych: {len(counted_queries)}')
+        for x in top_queries: print(f'{x[1]}\t{x[0]}')
+
     return counted_queries
+
+def missed_searches():
+    queries = outputlog(min=4, print_=False)
+    cleaned = Counter()
+    for k, v in queries.items():
+        key = textTools.clean(k)
+        cleaned.update({key: v})
+    
+    missed = {query: n for query, n in cleaned.most_common() if not tauntbot.compare(query)}
+    return missed
 
 if __name__ == '__main__':
     s = Stats(start=100)

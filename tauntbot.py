@@ -5,9 +5,6 @@ import requests, time, os
 import info, stats, textTools as tools
 from config import *
 
-# little setup
-if not os.path.exists('data'):
-    os.makedirs('data')
 
 # return list of results or 0 if there are none
 def getUpdates(token, timeout=0, lastUpdate=0,
@@ -162,8 +159,12 @@ def run():
         # lower than id of the last update in updatesList
         updatesList = getUpdates(botToken, 10, updatesList[-1])
 
-# main loop
+
 if __name__ == "__main__":
+    # little setup
+    if not os.path.exists('data'):
+        os.makedirs('data')
+    # main loop
     while True:
         try:
             run()
