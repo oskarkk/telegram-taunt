@@ -257,12 +257,17 @@ def split_hours(start=None, end=None):
 
     entries = Stats(start_date = start, end_date = end).entries
 
-    hours = {}
+    hours = [[] for _ in range(24)]
     for k, g in groupby(entries, key=lambda x: get_hour(x['time'])):
-        hours.setdefault(k,[]).extend(list(g))
+        hours[k].extend(list(g))
+
+    authors = [138268771]
+    hours_authors = [[entry for entry in hour if entry['from']['id'] in authors] for hour in hours]
     
-    hours = {k: len(v) for k, v in hours.items()}
-    return [(k, hours[k]) for k in sorted(hours)]
+    uses = [len(hour) for hour in hours]
+    uses_authors = [len(hour) for hour in hours_authors]
+    uses_minus_authors = [uses[i] - uses_authors[i] for i in range(24)]
+    return list(range(24)), uses, uses_minus_authors
 
 def axis(ys, label, color, ticks, divisible):
     if not plt.gca().get_ylabel():
@@ -306,17 +311,39 @@ def plot_months(start='2019-01-01', end='2022-06-01', separate_authors=False):
     print(filename)
     plt.close()
 
-def plot_hours(start=None, end=None):
-    labels, uses = zip(*split_hours(start, end))
+def plot_hours(start=None, end=None, separate_authors=False):
+    labels, uses, uses_minus_authors = split_hours(start, end)
     plt.subplots_adjust(top=0.85)
     plt.grid(linestyle = ':', color = 'lightgray', linewidth = 0.8)
     plt.title('Użycia TauntBota wg godzin', pad=20, size='x-large')
     
     ax1 = axis(uses, 'Użycia', 'C0', 5, 100)
-    ax1.plot(labels, uses, color='C0', label='użytkownicy bota')
+    ax1.plot(labels, uses, color='C0', label='użycia bota')
     ax1.set_xticks(range(0,24,2))
 
+    if separate_authors:
+        ax1.plot(labels, uses_minus_authors, '--', color='C0', label='użycia z wyłączeniem autorów')
+
     filename = 'img/plot-hours.png'
+    plt.savefig(filename, format='png', dpi=200)
+    print(filename)
+    plt.close()
+
+def plot_oskar():
+    labels, uses, uses_minus_authors = split_hours()
+    plt.subplots_adjust(top=0.85)
+    plt.grid(linestyle = ':', color = 'lightgray', linewidth = 0.8)
+    plt.title('Udział Oskara w użyciach TauntBota według godzin', pad=20, size='x-large')
+    percents = [(all-others)/all*100 for all, others in zip(uses, uses_minus_authors)]
+    ax = plt.gca()
+    ax.set_ylabel('% użyć', color='C0', fontweight="bold")
+    ax.set_ylim(0, 100)
+    ax.plot(labels, percents, color='C0', label='użycia bota')
+    ax.set_xticks(range(0,24,2))
+
+
+
+    filename = 'img/plot-oskar.png'
     plt.savefig(filename, format='png', dpi=200)
     print(filename)
     plt.close()
