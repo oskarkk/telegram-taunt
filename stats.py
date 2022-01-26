@@ -13,6 +13,7 @@ import math
 from itertools import groupby
 from collections import Counter
 
+
 # create list of taunt IDs and zeros separated by tabs
 # arg must be info.taunts
 def create(taunts=info.taunts):
@@ -370,9 +371,10 @@ def months_list(start='2021-01', end='2021-12'):
     
     return labels, date_ranges
 
+
 # TODO: check chat types
 # TODO: how many of new users don't ever write anything? (remember caching)
-def outputlog(n=50, min=0, print_=True):
+def query_log():
     answers = []
     wrong = 0
     with open('data/shown.log', 'r') as f:
@@ -385,19 +387,28 @@ def outputlog(n=50, min=0, print_=True):
                 #print(line)
                 continue
 
-    queries = [x['query'] for x in answers if len(x['query']) >= min]
-    counted_queries = Counter(queries)
+    queries = [x['query'] for x in answers]
+    return queries
+
+
+def query_log_count(n=50, min=0, print_=True):
+    queries = query_log()
+    filtered_queries = [q for q in queries if len(q) >= min]
+    counted_queries = Counter(filtered_queries)
 
     if print_:
         top_queries = counted_queries.most_common(n)
-        print(f'razem: {len(queries)}')
+        print(f'wszystkie: {len(queries)}')
+        if min > 0:
+            print(f'o długości min. {min}: {len(filtered_queries)}')
         print(f'unikalnych: {len(counted_queries)}')
         for x in top_queries: print(f'{x[1]}\t{x[0]}')
 
     return counted_queries
 
+
 def missed_searches():
-    queries = outputlog(min=4, print_=False)
+    queries = query_log_count(min=4, print_=False)
     cleaned = Counter()
     for k, v in queries.items():
         key = textTools.clean(k)
@@ -405,6 +416,7 @@ def missed_searches():
     
     missed = {query: n for query, n in cleaned.most_common() if not tauntbot.compare(query)}
     return missed
+
 
 if __name__ == '__main__':
     s = Stats(start=100)

@@ -1,23 +1,37 @@
+polishLetters = 'ąćęłńóśźżĄĆĘŁŃÓŚŹŻ'
+asciiLetters = 'acelnoszz'
+punctuation = ",.-?!'"
+lowercase = 'abcdefghijklmnopqrstuvwxyz'
+uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+polish_map = str.maketrans(polishLetters, asciiLetters*2)
+polish_map2 = list(zip(polishLetters, asciiLetters))
+punc_map = str.maketrans('', '', punctuation)
+case_map = str.maketrans(uppercase, lowercase)
+
+all_map = polish_map | punc_map | case_map
+
+
+# remove punctuation, trailing whitespace, 
+# change to lowercase, replace polish letters with ascii
+def clean(text):
+    text = text.strip().translate(all_map)
+    return text
+
+
+# LEGACY
+
 # replace polish letters with ascii
-def polish1(text):
+def polish(text):
     polishLetters = 'ąćęłńóśźż'
     asciiLetters = 'acelnoszz'
     for index, letter in enumerate(polishLetters):
         text = text.replace(letter, asciiLetters[index])
     return text
 
-def polish2(text):
-    translateDic = {pl: latin for pl, latin in zip('ąćęłńóśźż','acelnoszz')}
-    return text.translate(translateDic)
-
-#text = 'Zażółć gęślą jaźń'
-
-# remove punctuation, trailing whitespace, 
-# change to lowercase, replace polish letters with ascii
-def clean(text):
-    punctuation = ",.-?!'"
+def clean_legacy(text):
     for char in punctuation:
         text = text.replace(char,'')
     text = text.strip().lower()
-    text = polish1(text)
+    text = polish(text)
     return text

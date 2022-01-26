@@ -88,8 +88,9 @@ def compositeSearch(query):
         matches &= partMatches
     return matches
 
+# TODO: if len(query)<2 return top taunts
 # compare query with info.taunts and return list of taunt IDs
-def compare(query):
+def compare(query, max=50):
     query = tools.clean(query)
 
     for egg in easterEggs:
@@ -108,7 +109,7 @@ def compare(query):
 
     # find matching taunts by string comparison and sort them by popularity
     matches = compositeSearch(query)
-    if matches: matches = stats.sort(matches)
+    if matches: matches = stats.sort(matches, max=max)
     return matches
 
 # matches arg is a list of taunt IDs
