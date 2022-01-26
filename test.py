@@ -41,16 +41,12 @@ def find(s, f):
     return partMatches
 
 
-def test_find(s):
-    
+def test_find():
     def test(f):
-        for s in strings:
-            test_find(s)
+        for s in strings: f(s)
 
     for f in (check, check_comp, check_dumb):
-        print(timeit(lambda: test(s, f), number=100))
-        print(timeit(lambda: test(s, f), number=100))
-        print(timeit(lambda: test(s, f), number=100))
+        print(timeit(lambda: test(f), number=100))
 
 
 def test2():
