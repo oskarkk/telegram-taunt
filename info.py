@@ -12,13 +12,13 @@ def convert(file):
             table.append({ table[0][i]: row[i] for i in range(0, len(table[0])) })
 
     # function in case of possible new splitable columns in the future
-    def cellSplit(table, key):
+    def cell_split(table, key):
         for row in table[1:]:
             row[key] = [ x.strip() for x in row[key].split(';') ]
         return table
 
     # split every cell in voice column to list of single voices
-    table = cellSplit(table, 'voice')
+    table = cell_split(table, 'voice')
 
     # replace audio extension and prepare for passing as url
     for row in table[1:]:

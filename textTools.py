@@ -1,11 +1,10 @@
-polishLetters = 'ąćęłńóśźżĄĆĘŁŃÓŚŹŻ'
-asciiLetters = 'acelnoszz'
+polish_letters = 'ąćęłńóśźżĄĆĘŁŃÓŚŹŻ'
+ascii_letters = 'acelnoszz'
 punctuation = ",.-?!'"
 lowercase = 'abcdefghijklmnopqrstuvwxyz'
 uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
-polish_map = str.maketrans(polishLetters, asciiLetters*2)
-polish_map2 = list(zip(polishLetters, asciiLetters))
+polish_map = str.maketrans(polish_letters, ascii_letters*2)
 punc_map = str.maketrans('', '', punctuation)
 case_map = str.maketrans(uppercase, lowercase)
 
@@ -23,10 +22,10 @@ def clean(text):
 
 # replace polish letters with ascii
 def polish(text):
-    polishLetters = 'ąćęłńóśźż'
-    asciiLetters = 'acelnoszz'
-    for index, letter in enumerate(polishLetters):
-        text = text.replace(letter, asciiLetters[index])
+    polish_letters = 'ąćęłńóśźż'
+    ascii_letters = 'acelnoszz'
+    for index, letter in enumerate(polish_letters):
+        text = text.replace(letter, ascii_letters[index])
     return text
 
 def clean_legacy(text):

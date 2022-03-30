@@ -21,6 +21,7 @@ def create(taunts=info.taunts):
         for x in range(len(taunts[1:])):
             f.write(str(x+1) + '\t0\n')
 
+
 # get list of [id, use_count] for every taunt or selected
 # arg can be a list or a set
 def get(tauntList=0):
@@ -31,6 +32,7 @@ def get(tauntList=0):
     if not tauntList: return lines
     return [ lines[int(i)-1] for i in tauntList ]
 
+
 # increment use counter of one taunt
 def save(taunt):
     lines = get()
@@ -40,6 +42,7 @@ def save(taunt):
     with open('data/stats.txt', 'w') as f:
         f.write(content)
 
+
 # sort given ID list by popularity
 def sort(tauntList=0, max=50):
     table = get(tauntList)
@@ -47,6 +50,7 @@ def sort(tauntList=0, max=50):
     # discard everything after <max> most popular taunts
     table = table[:max]
     return [ i[0] for i in table ]
+
 
 class Stats:
 
@@ -66,7 +70,8 @@ class Stats:
             answers.append(obj)
         return answers
 
-    def getUsers(self):
+
+    def get_users(self):
         users = {}
         for entry in self.entries:
             id = entry['from']['id']
@@ -107,7 +112,8 @@ class Stats:
         self.users = users
         self.various['usersNum'] = len(users)
 
-    def getTaunts(self):
+
+    def get_taunts(self):
         self.various['usedTaunts'] = 0
         for entry in self.entries:
             id = int(entry['result_id'])
@@ -131,14 +137,16 @@ class Stats:
             'uses': len(self.entries),
             'allTaunts': len(self.taunts[1:])
         }
-        self.getUsers()
-        self.getTaunts()
+        self.get_users()
+        self.get_taunts()
+
 
     # get pretty formatted string representation of obj
     def pretty(self, obj): return pprint.pformat(obj, indent=4)
 
-    def print(self, obj, enter=1, userTaunts=0):
-        if obj == self.users and userTaunts == 0:
+
+    def print(self, obj, enter=1, user_taunts=0):
+        if obj == self.users and user_taunts == 0:
             obj = deepcopy(obj)
             for user in obj:
                 del obj[user]['taunts']
@@ -148,76 +156,79 @@ class Stats:
             print( self.pretty(obj[x]) )
             if enter: print()
 
+
     # call with filename only to recreate stats.txt from chosen.log
     # call exportTaunts(sort=1, details=1, num=20) to get short toplist
-    def exportTaunts(self, sort=0, details=0, filename=0, min=0, num=None):
-        outputList = []
+    def export_taunts(self, sort=0, details=0, filename=0, min=0, num=None):
+        output_list = []
         for taunt in self.taunts[1:]:
             count = taunt.get('count',0)
             if count < min: continue
             if details:
-                outputList += [ [taunt['id'], count, taunt['name']] ]
+                output_list += [ [taunt['id'], count, taunt['name']] ]
             else:
-                outputList += [ [taunt['id'], count] ]
+                output_list += [ [taunt['id'], count] ]
 
         if sort:
-            outputList.sort(key=lambda x: x[1], reverse=1)
+            output_list.sort(key=lambda x: x[1], reverse=1)
 
         # get only the <num> first lines
-        if num: outputList = outputList[:num]
+        if num: output_list = output_list[:num]
 
-        for taunt in outputList: taunt[1] = str(taunt[1])
+        for taunt in output_list: taunt[1] = str(taunt[1])
 
-        outputStr = '\n'.join([ '\t'.join(taunt) for taunt in outputList ])
+        output_str = '\n'.join([ '\t'.join(taunt) for taunt in output_list ])
         if filename:
             with open(filename, 'w') as f:
-                f.write(outputStr)
-        return outputStr
+                f.write(output_str)
+        return output_str
+
 
     # useful sort values: 'use_count', 'last_use'
-    def exportUsers(self, sort='use_count', rev=1, showTaunts=1, max=None):
+    def export_users(self, sort='use_count', rev=1, showTaunts=1, max=None):
         users = [ dict(self.users[user]) for user in self.users ]
         users.sort(key=lambda x: x[sort], reverse=rev)
 
         output = ''
 
         for user in users[:max]:
-            firstUse = datetime.fromtimestamp(user['first_use'])
-            lastUse = datetime.fromtimestamp(user['last_use'])
-            firstName = user.get('first_name', '')
-            lastName = user.get('last_name', '')
+            first_use = datetime.fromtimestamp(user['first_use'])
+            last_use = datetime.fromtimestamp(user['last_use'])
+            first_name = user.get('first_name', '')
+            last_name = user.get('last_name', '')
             # show info about user
-            outputLines = [
+            output_lines = [
                 f"{user['id']}: {user['username'][-1]}",
-                f"{firstName} {lastName}",
-                f"{firstUse}",
-                f"{lastUse}",
+                f"{first_name} {last_name}",
+                f"{first_use}",
+                f"{last_use}",
                 f"uses: {user['use_count']}",
                 f"taunts used: {user['taunt_count']}"
             ]
 
             # add user's taunt toplist on the right of the info
             if showTaunts:
-                usersTaunts = list(user['taunts'].items())
-                usersTaunts.sort(reverse=1, key=lambda x: x[1])
-                usersTaunts = usersTaunts[:len(outputLines)]
-                for n, taunt in enumerate(usersTaunts):
+                users_taunts = list(user['taunts'].items())
+                users_taunts.sort(reverse=1, key=lambda x: x[1])
+                users_taunts = users_taunts[:len(output_lines)]
+                for n, taunt in enumerate(users_taunts):
                     # get the correct number of char columns
                     # in the terminal that the string is occupying
-                    linelen = widelen(outputLines[n])
+                    linelen = widelen(output_lines[n])
                     if linelen > 28:
-                        outputLines[n] = outputLines[n][:-linelen+28]
+                        output_lines[n] = output_lines[n][:-linelen+28]
                     else:
-                        outputLines[n] += ' ' * (28-linelen)
-                    outputLines[n] += "   " \
+                        output_lines[n] += ' ' * (28-linelen)
+                    output_lines[n] += "   " \
                         f"{taunt[1]!s:4.3}" \
                         f"{taunt[0]:5.4}" \
                         f"{self.taunts[int(taunt[0])]['name']:35.35}"
-            print('\n'.join(outputLines),'\n')
+            print('\n'.join(output_lines),'\n')
+
 
 # for chosen.log; useful when you've made a mess with various bot instances
 # and want to glue logs into one
-def getEntriesPastTimestamp(inFilename, outFilename, timestamp):
+def get_entries_past_timestamp(inFilename, outFilename, timestamp):
   count = 0
   with open(outFilename, 'a') as outFile:
     with open(inFilename, 'r') as inFile:
@@ -232,6 +243,7 @@ def getEntriesPastTimestamp(inFilename, outFilename, timestamp):
 def year_month(timestamp):
     date = datetime.fromtimestamp(timestamp)
     return f'{date.year}-{date.month:02}'
+
 
 # TODO: don't split the list? just iterate?
 def split_months(start='2019-01-01', end='2022-01-01'):
@@ -255,6 +267,7 @@ def split_months(start='2019-01-01', end='2022-01-01'):
 
     return months.keys(), users_num, uses_num, uses_minus_authors
 
+
 def split_hours(start=None, end=None):
     def get_hour(timestamp):
         return datetime.fromtimestamp(timestamp).hour
@@ -273,6 +286,7 @@ def split_hours(start=None, end=None):
     uses_minus_authors = [uses[i] - uses_authors[i] for i in range(24)]
     return list(range(24)), uses, uses_minus_authors
 
+
 def axis(ys, label, color, ticks, divisible):
     if not plt.gca().get_ylabel():
         ax = plt.gca()
@@ -284,6 +298,7 @@ def axis(ys, label, color, ticks, divisible):
     ax.set_ylim(0, grid*1.1)
     ax.set_yticks([n*grid/ticks for n in range(0,ticks+1)])
     return ax
+
 
 def plot_months(start='2019-01-01', end='2022-06-01', separate_authors=False):
     labels, users, uses, uses_minus_authors = split_months(start, end)
@@ -315,6 +330,7 @@ def plot_months(start='2019-01-01', end='2022-06-01', separate_authors=False):
     print(filename)
     plt.close()
 
+
 def plot_hours(start=None, end=None, separate_authors=False):
     labels, uses, uses_minus_authors = split_hours(start, end)
     plt.subplots_adjust(top=0.85)
@@ -332,6 +348,7 @@ def plot_hours(start=None, end=None, separate_authors=False):
     plt.savefig(filename, format='png', dpi=200)
     print(filename)
     plt.close()
+
 
 def plot_oskar():
     labels, uses, uses_minus_authors = split_hours()
@@ -351,6 +368,7 @@ def plot_oskar():
     plt.savefig(filename, format='png', dpi=200)
     print(filename)
     plt.close()
+
 
 # not used
 def months_list(start='2021-01', end='2021-12'):
@@ -420,4 +438,4 @@ def missed_searches():
 
 if __name__ == '__main__':
     s = Stats(start=100)
-    s.exportUsers(max=10)
+    s.export_users(max=10)

@@ -7,7 +7,7 @@ from config import *
 
 
 # return list of results or 0 if there are none
-def getUpdates(token, timeout=0, lastUpdate=0,
+def get_updates(token, timeout=0, lastUpdate=0,
                types=['inline_query','chosen_inline_result'], limit=100):
     dic = { 'timeout': timeout,
             'allowed_updates': types,
@@ -34,7 +34,8 @@ def getUpdates(token, timeout=0, lastUpdate=0,
                 f.write(str(dic)+'\n'+str(updates)+'\n\n')
         return 0
 
-def compositeSearch(query):
+
+def composite_search(query):
     # split composite queries, strip whitespace around '&'
     # and make list of ['key', 'searched string'] or just ['searched string']
     parts = [ x.strip().split(':', maxsplit=1) for x in query.split('&') ]
@@ -59,41 +60,42 @@ def compositeSearch(query):
     # I am deeply sorry for this symphony of fors and ifs
     for part in parts:
         # make set for all matches for a part
-        partMatches = set()
+        part_matches = set()
         for index, taunt in enumerate(info.taunts[1:], start=1):
             # part without searching in key
             if len(part) == 1:
                 for key in ['name', 'content', 'category', 'source']:
                     if check(taunt[key]): 
-                        partMatches.add(index)
+                        part_matches.add(index)
                         break
                 else:
                     for voice in taunt['voice']:
                         if check(voice): 
-                            partMatches.add(index)
+                            part_matches.add(index)
                             break
             # part with key in part[1]
             elif len(part) == 2:
                 if part[1] in ['name', 'content', 'category', 'source']:
-                    if check(taunt[part[1]]): partMatches.add(index)
+                    if check(taunt[part[1]]): part_matches.add(index)
                 elif part[1] == 'voice':
                     for voice in taunt['voice']:
                         if check(voice): 
-                            partMatches.add(index)
+                            part_matches.add(index)
                             break
         # none matches in any part mean that nothing will match overall
-        if not partMatches:
+        if not part_matches:
             return []
         # set intersection
-        matches &= partMatches
+        matches &= part_matches
     return matches
+
 
 # TODO: if len(query)<2 return top taunts
 # compare query with info.taunts and return list of taunt IDs
 def compare(query, max=50):
     query = tools.clean(query)
 
-    for egg in easterEggs:
+    for egg in easter_eggs:
         if query == egg[0]: return [ egg[1] ]
 
     # searching by ID, only if query is a number
@@ -103,39 +105,41 @@ def compare(query, max=50):
         pass
     else:
         # check if given number is <= number of taunts and >0
-        tauntsNum = len(info.taunts[1:])
-        if num in range(1, tauntsNum+1):
-            return list( range(num, min(num+50, tauntsNum+1)) )
+        taunts_num = len(info.taunts[1:])
+        if num in range(1, taunts_num+1):
+            return list( range(num, min(num+50, taunts_num+1)) )
 
     # find matching taunts by string comparison and sort them by popularity
-    matches = compositeSearch(query)
+    matches = composite_search(query)
     if matches: matches = stats.sort(matches, max=max)
     return matches
 
+
 # matches arg is a list of taunt IDs
-def sendAnswers(query, matches):
+def send_answers(query, matches):
     dic = { 'inline_query_id': query,
             'cache_time': 30,
             'results': []
     }
     for match in matches:
-        dicResult = {
+        dic_result = {
             'type': 'voice',
             'id': str(match),
             'title': str(match) + ' ' + info.taunts[int(match)]['name'],
             'voice_url': httpURL + info.taunts[int(match)]['filename']
 #            'caption': match
         }
-        dic['results'].append(dicResult)
+        dic['results'].append(dic_result)
     resp = requests.post( 'https://api.telegram.org/bot'
-                        + botToken + '/answerInlineQuery', json=dic ).json()
+                        + botToken + '/answerInlineQuery', json=dic, timeout=3.5 ).json()
     print(resp)
 
+
 def run():
-    updatesList = getUpdates(botToken, timeout=300)
+    updates_list = get_updates(botToken, timeout=300)
     # tg gives max 100 updates, so repeat until there are none left
-    while updatesList:
-        for update in updatesList:
+    while updates_list:
+        for update in updates_list:
             # when someone is requesting taunts from the bot
             if 'inline_query' in update:
                 inline_query = update['inline_query']
@@ -145,7 +149,7 @@ def run():
                     inline_query['time'] = int(time.time())
                     inline_query['matches'] = matches
                     f.write(str(inline_query)+'\n')
-                sendAnswers(inline_query['id'], matches)
+                send_answers(inline_query['id'], matches)
             # when tg informs the bot that someone has chosen a taunt
             # (for every result there may or may not be an associated query,
             # remember caching)
@@ -158,7 +162,7 @@ def run():
                     f.write(str(update['chosen_inline_result'])+'\n')
         # get the next updates, at the same time confirming updates with id
         # lower than id of the last update in updatesList
-        updatesList = getUpdates(botToken, 10, updatesList[-1])
+        updates_list = get_updates(botToken, 10, updates_list[-1])
 
 
 if __name__ == "__main__":
